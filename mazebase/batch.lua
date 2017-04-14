@@ -24,54 +24,30 @@ function batch_active(batch)
     return active:view(-1)
 end
 
-function batch_speaker_map(batch, active)
-    local num_channels
-    if g_opts.pickup_enable == true then
-        num_channels = 3 + g_opts.num_types_objects * 2 --3: block, water, listener
-    else
-        num_channels = 3 + g_opts.num_types_objects
-    end
-    local map = torch.Tensor(#batch, num_channels, g_opts.map_height, g_opts.map_width)    
-    map:fill(0)
+function batch_input_asker(batch, active)
+    local input = torch.Tensor(#batch, g_opts.memsize, g_opts.max_attributes)
+    input:fill(g_vocab['nil'])
     for i, g in pairs(batch) do
         if active[i] == 1 then
-            map[i] = g:to_fullmap_obs()
+            g:to_sentence_asker(input[i])
         end
     end
-    return map
+    return input
 end
 
-function batch_listener_localmap(batch, active)
-    local num_channels
-    if g_opts.pickup_enable == true then
-        num_channels = 3 + g_opts.num_types_objects * 2 --3: block, water, listener
-    else
-        num_channels = 3 + g_opts.num_types_objects
-    end
-    local visibility = g_opts.listener_visibility
-    local localmap = torch.Tensor(#batch, num_channels, visibility*2+1, visibility*2+1)
-    localmap:fill(0)
+function batch_act_asker(batch, listener_action, active)
     for i, g in pairs(batch) do
         if active[i] == 1 then
-            localmap[i] = g:to_localmap_obs() --default:listener's local map
-        end
-    end
-    return localmap
-end
-
-function batch_listener_act(batch, listener_action, active)
-    for i, g in pairs(batch) do
-        if active[i] == 1 then
-            g:listener_act(listener_action[i][1])
+            g:act(listener_action[i][1])
         end
     end
 end
 
-function batch_reward(batch, active, is_last)
+function batch_reward(batch, active)
     local reward = torch.Tensor(#batch):zero()
     for i, g in pairs(batch) do
         if active[i] == 1 then
-            reward[i] = g:get_reward(is_last)
+            reward[i] = g:get_reward()
         end
     end
     return reward:view(-1)

@@ -10,23 +10,30 @@ function KeyBox:__init(opts, vocab)
 
     
     self:add_default_items() -- blocks, waters
+    self:add_asker()
     self:add_key()
     self:add_box()
-    self:add_asker()
+    
 
     self.success_open_total = 0
     self.failure_open_total = 0
+    self.success_open = 0
+    self.failure_open = 0
 
     self.finished = false
 end
-
+function KeyBox:add_test()
+end
 
 function KeyBox:add_key()
     --attr: id, color, postion, status
     local id = torch.randperm(self.n_keys)
     local color = torch.Tensor(self.n_keys):random(1, self.n_colors)
     for i = 1, self.n_keys do 
-        self:place_item_rand({type = 'key', id = 'id'..id[i], color='color'..color[i], status='OnGround'}) 
+        --self:place_item_rand({type = 'key', id = 'id'..id[i], color='color'..color[i], status='OnGround'}) 
+        self:place_item({type = 'key', id = 'id'..id[i], color='color'..color[i], status='OnGround'},
+                             3, 2) 
+
     end
 end
 function KeyBox:add_box()
@@ -40,14 +47,17 @@ function KeyBox:add_box()
     self.n_goal_boxes = boxType:eq(1):sum()
 
     for i = 1, self.n_boxes do 
-        self:place_item_rand({type = 'box', id = 'id'..id[i], color='color'..color[i], status='BoxType'..boxType[i]}) 
+        --self:place_item_rand({type = 'box', id = 'id'..id[i], color='color'..color[i], status='BoxType'..boxType[i]}) 
+        self:place_item({type = 'box', id = 'id'..id[i], color='color'..color[i], status='BoxType'..boxType[i]},
+                            3, 4)
     end
 end
 function KeyBox:add_asker()
-    self.agent = self:place_item_rand({type = 'agent'})
+    --self.agent = self:place_item_rand({type = 'agent'})
+    self.agent = self:place_item({type = 'agent'},3,3)
     self.agent:add_action('toggle',
         function(self) --self for agent
-            local l = self.map.items[y][x]
+            local l = self.map.items[self.loc.y][self.loc.x]
             if #l == 1 then --only agent 
                 --do nothing
             elseif #l==2 then --agnet + (box or key)
@@ -77,14 +87,14 @@ function KeyBox:add_asker()
                     --do nothing
                 else --open the box
                     if the_third.attr.status == 'BoxType'..1 then
-                        self.success_open = 1
-                        self.success_open_total = self.success_open_total +  1
+                        self.maze.success_open = 1
+                        self.maze.success_open_total = self.maze.success_open_total +  1
                     else
-                        self.failure_open = 1
-                        self.failure_open_total = self.failure_open_total + 1
+                        self.maze.failure_open = 1
+                        self.maze.failure_open_total = self.maze.failure_open_total + 1
                     end
-                    self.base:remove_item(key_pickedup)
-                    self.base:remove_item(the_third)
+                    self.maze:remove_item(key_pickedup)
+                    self.maze:remove_item(the_third)
 
                 end
             end
@@ -107,7 +117,7 @@ function KeyBox:update()
 
     --finished (compare total_open vs total_type1)
     if self.n_goal_boxes == self.success_open_total then
-        self.finished == true
+        self.finished = true
     end
 end
 
@@ -121,7 +131,7 @@ function KeyBox:get_reward()
 end
 
 function KeyBox:to_sentence_visible(e, sentence, visibile_attr)
-    local s = e:to_sentence_visible(visibile_attr)
+    local s = e:to_sentence_visible(visibile_attsr)
     for i = 1, #s do
         sentence[i] = self.vocab[s[i]]
     end

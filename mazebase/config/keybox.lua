@@ -31,9 +31,9 @@ sso.max_attributes = g_opts.max_attributes or 6
 
 
 ----------Game Specific----------------
-sso.n_keys = 5
-sso.n_boxes = 5
-sso.n_boxTypes = 2
+sso.n_keys = 1
+sso.n_boxes = 1
+sso.n_boxTypes = 1
 sso.n_colors = 5
 sso.costs.success_open = -1
 sso.costs.failure_open = 1
@@ -44,7 +44,7 @@ g_opts.MW = mapW[1]
 g_opts.n_keys = sso.n_keys
 g_opts.n_colors = sso.n_colors
 
-
+g_opts.nactions = 6
 
 -- KeyBox:
 local KeyBoxRangeOpts = {}
