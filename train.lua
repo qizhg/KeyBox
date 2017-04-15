@@ -11,6 +11,7 @@ function train_batch(task_id)
     local input = {}
     local action = {}
     local active = {}
+    local baseline = {}
 
     --play the game (forward pass)
     local dummy = torch.Tensor(#batch, g_opts.hidsz):fill(0.1)
@@ -21,13 +22,34 @@ function train_batch(task_id)
         local context = dummy:clone()
         input[t] = {context, mem}
         local out = ask_model:forward(input[t])
-        action[t] = sample_multinomial(torch.exp(out[1]))  --(#batch, 1)
+        baseline[t] = out[2]:clone():cmul(active[t])
+        
+
+        local ep = g_opts.eps_start
+        if torch.uniform() < ep then
+            action[t] = torch.LongTensor(#batch,1)
+            action[t]:random(1, g_opts.nactions)
+        else
+            action[t] = sample_multinomial(torch.exp(out[1]))  --(#batch, 1)
+        end
 
         batch_act_asker(batch, action[t], active[t])
         batch_update(batch, active[t])
         reward[t] = batch_reward(batch, active[t])
     end
     local success = batch_success(batch)
+
+    --prepare for GAE
+    local delta = {} --TD residual
+    delta[g_opts.max_steps] = reward[g_opts.max_steps] - baseline[g_opts.max_steps]
+    for t=1, g_opts.max_steps-1 do 
+        delta[t] = reward[t] + g_opts.gamma*baseline[t+1] - baseline[t]
+    end
+    local A_GAE={} --GAE advatage
+    A_GAE[g_opts.max_steps] = delta[g_opts.max_steps]
+    for t=g_opts.max_steps-1, 1, -1 do 
+        A_GAE[t] = delta[t] + g_opts.gamma*g_opts.lambda*A_GAE[t+1] 
+    end
 
     -- do back-propagation
     ask_paramdx:zero()
@@ -36,14 +58,25 @@ function train_batch(task_id)
         if active[t] ~= nil and active[t]:sum() > 0 then
             reward_sum:add(reward[t])
             local out = ask_model:forward(input[t])
+            
             local R = reward_sum:clone() --(#batch, )
             local baseline = out[2]
             baseline:cmul(active[t])
             R:cmul(active[t])
             local bl_grad = ask_bl_loss:backward(baseline, R):mul(g_opts.alpha)
-            baseline:add(-1, R)
+            
             local grad = torch.Tensor(g_opts.batch_size, g_opts.nactions):zero()
-            grad:scatter(2, action[t], baseline)
+            grad:scatter(2, action[t], A_GAE[t]:view(-1,1):neg())
+            
+        --[[local beta = g_opts.beta_start - num_batchs*g_opts.beta_start/g_opts.beta_end_batch
+            beta = math.max(0,beta)
+            local logp = out[1]
+            local entropy_grad = logp:clone():add(1)
+            entropy_grad:cmul(torch.exp(logp))
+            entropy_grad:mul(beta)
+            entropy_grad:cmul(active[t]:view(-1,1):expandAs(entropy_grad):clone())
+            grad:add(entropy_grad)--]]
+            
             grad:div(g_opts.batch_size)
             ask_model:backward(input[t], {grad, bl_grad})
         end
@@ -93,6 +126,9 @@ function train(N)
         stat.epoch = #g_log + 1
         print(format_stat(stat))
         table.insert(g_log, stat)
+
+        g_opts.save = 'model_epoch'
+        g_save_model()
     end
 
 end

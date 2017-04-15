@@ -42,20 +42,18 @@ local cmd = torch.CmdLine()
 -- threads
 cmd:option('--nworker', 1, 'the number of threads used for training')
 -- model parameters
-cmd:option('--memsize', 50, 'the size of the internal state vector')
-cmd:option('--hidsz', 32, 'the size of the internal state vector')
+cmd:option('--memsize', 20, 'the size of the internal state vector')
+cmd:option('--hidsz', 64, 'the size of the internal state vector')
 cmd:option('--nhop', 3, 'memory hop')
 cmd:option('--nonlin', 'relu', 'non-linearity type: tanh | relu | none')
-cmd:option('--init_std', 0.1, 'STD of initial weights')
-cmd:option('--listener', true, '')
-cmd:option('--lstm', false, '')
+cmd:option('--init_std', 0.2, 'STD of initial weights')
 -- game parameters
-cmd:option('--max_steps', 20, 'force to end the game after this many steps')
+cmd:option('--max_steps', 30, 'force to end the game after this many steps')
 cmd:option('--games_config_path', 'mazebase/config/keybox.lua', 'configuration file for games')
 -- training parameters
 ---------
-cmd:option('--epochs', 200, 'the number of training epochs')
-cmd:option('--nbatches', 100, 'the number of mini-batches in one epoch')
+cmd:option('--epochs', 500, 'the number of training epochs')
+cmd:option('--nbatches', 500, 'the number of mini-batches in one epoch')
 cmd:option('--batch_size', 32, 'size of mini-batch (the number of parallel games) in each thread')
 ---- GAE
 cmd:option('--gamma', 0.99, '')
@@ -63,16 +61,16 @@ cmd:option('--lambda', 0.9, '')
 ---- lr aneeal??
 cmd:option('--lrate', 1e-3, 'learning rate')
 cmd:option('--lrate_start', 1e-3, 'coefficient of listener entropy mixing')
-cmd:option('--lrate_end_batch', 100*50, '')
+cmd:option('--lrate_end_batch', 100*100, '')
 ---- Gumbel
 cmd:option('--Gumbel_temp', 1.0, 'fixed Gumbel_temp')
 ---- baseline mixing
 cmd:option('--alpha', 0.03, 'coefficient of baseline term in the cost function')
 ---- entropy mixing
 cmd:option('--beta_start', 0.01, 'coefficient of listener entropy mixing')
-cmd:option('--beta_end_batch', 100*5, '')
+cmd:option('--beta_end_batch', 500*50, '')
 ---- eps mixing
-cmd:option('--eps_start', 0.3, '')
+cmd:option('--eps_start', 0.1, '')
 cmd:option('--eps_end_batch', 100*50, '')
 ---- target_period
 cmd:option('--target_period', 100*2, '')
