@@ -61,13 +61,15 @@ function train_batch(task_id)
             local out = ask_model:forward(input[t])
             
             local R = reward_sum:clone() --(#batch, )
-            local baseline = out[2]
-            baseline:cmul(active[t])
+            local baseline_step = out[2]
+            baseline_step:cmul(active[t])
             R:cmul(active[t])
-            local bl_grad = ask_bl_loss:backward(baseline, R):mul(g_opts.alpha)
+            local bl_grad = ask_bl_loss:backward(baseline_step, R):mul(g_opts.alpha)
             
             local grad = torch.Tensor(g_opts.batch_size, g_opts.nactions):zero()
-            grad:scatter(2, action[t], A_GAE[t]:view(-1,1):neg())
+            --grad:scatter(2, action[t], A_GAE[t]:view(-1,1):neg())
+            baseline_step:add(-1, R)
+            grad:scatter(2, action[t], baseline_step)
             
         --[[local beta = g_opts.beta_start - num_batchs*g_opts.beta_start/g_opts.beta_end_batch
             beta = math.max(0,beta)
@@ -82,6 +84,7 @@ function train_batch(task_id)
             ask_model:backward(input[t], {grad, bl_grad})
         end
     end
+    print(ask_paramdx:norm())
 
 
     local stat={}
@@ -89,14 +92,6 @@ function train_batch(task_id)
     stat.success = success:sum()
     stat.count = g_opts.batch_size
     return stat
-end
-
-function train_batch_thread(opts_orig, listener_paramx_orig, speaker_paramx_orig,task_id)
-    g_opts = opts_orig
-    g_listener_paramx:copy(listener_paramx_orig)
-    g_speaker_paramx:copy(speaker_paramx_orig)
-    local stat = train_batch(task_id)
-    return g_listener_paramdx, g_speaker_paramdx, stat
 end
 
 -- EVERYTHING ABOVE RUNS ON THREADS
@@ -110,9 +105,9 @@ function train(N)
             xlua.progress(k, g_opts.nbatches)
             local s = train_batch()
             merge_stat(stat, s)
+            g_update_param(ask_paramx, ask_paramdx, 'ask' ) --update every minibatch
         end
 
-        g_update_param(ask_paramx, ask_paramdx, 'ask' )
 
         for k, v in pairs(stat) do
             if string.sub(k, 1, 5) == 'count' then
