@@ -32,13 +32,14 @@ function batch_input_asker(batch, active)
             g:to_sentence_asker(input[i])
         end
     end
-    return input
+    input:resize(#batch, g_opts.memsize * g_opts.max_attributes)
+    return input --will be slots for memory
 end
 
-function batch_act_asker(batch, listener_action, active)
+function batch_act_asker(batch, action, active)
     for i, g in pairs(batch) do
         if active[i] == 1 then
-            g:act(listener_action[i][1])
+            g:act(action[i][1])
         end
     end
 end

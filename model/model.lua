@@ -17,5 +17,5 @@ function g_init_model()
     if g_opts.init_std > 0 then
         ask_paramx:normal(0, g_opts.init_std)
     end
-    bl_loss = nn.MSECriterion()
+    ask_bl_loss = nn.MSECriterion()
 end

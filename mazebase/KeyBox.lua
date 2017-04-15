@@ -131,7 +131,7 @@ function KeyBox:get_reward()
 end
 
 function KeyBox:to_sentence_visible(e, sentence, visibile_attr)
-    local s = e:to_sentence_visible(visibile_attsr)
+    local s = e:to_sentence_visible(visibile_attr)
     for i = 1, #s do
         sentence[i] = self.vocab[s[i]]
     end

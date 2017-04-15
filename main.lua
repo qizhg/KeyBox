@@ -1,13 +1,11 @@
 
---torch.manualSeed(451)
-
 local function init()
     require('xlua')
 	torch.setdefaulttensortype('torch.FloatTensor')
 	paths.dofile('util.lua')
 	paths.dofile('model/model.lua')
 	--paths.dofile('model/speaker_model.lua')
-	--paths.dofile('train.lua')
+	paths.dofile('train.lua')
     --paths.dofile('listener_train.lua')
     --paths.dofile('speaker_train.lua')
     --paths.dofile('run.lua')
@@ -44,6 +42,7 @@ local cmd = torch.CmdLine()
 -- threads
 cmd:option('--nworker', 1, 'the number of threads used for training')
 -- model parameters
+cmd:option('--memsize', 50, 'the size of the internal state vector')
 cmd:option('--hidsz', 32, 'the size of the internal state vector')
 cmd:option('--nhop', 3, 'memory hop')
 cmd:option('--nonlin', 'relu', 'non-linearity type: tanh | relu | none')
@@ -51,11 +50,11 @@ cmd:option('--init_std', 0.1, 'STD of initial weights')
 cmd:option('--listener', true, '')
 cmd:option('--lstm', false, '')
 -- game parameters
-cmd:option('--max_steps', 10, 'force to end the game after this many steps')
+cmd:option('--max_steps', 20, 'force to end the game after this many steps')
 cmd:option('--games_config_path', 'mazebase/config/keybox.lua', 'configuration file for games')
 -- training parameters
 ---------
-cmd:option('--epochs', 50, 'the number of training epochs')
+cmd:option('--epochs', 200, 'the number of training epochs')
 cmd:option('--nbatches', 100, 'the number of mini-batches in one epoch')
 cmd:option('--batch_size', 64, 'size of mini-batch (the number of parallel games) in each thread')
 ---- GAE
@@ -99,6 +98,9 @@ g_mazebase.init_vocab()
 g_mazebase.init_game()
 
 g_init_model()
+
+g_log = {}
+train(g_opts.epochs)
 
 --[[
 game = g_mazebase.new_game()
