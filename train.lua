@@ -25,7 +25,8 @@ function train_batch(task_id)
         baseline[t] = out[2]:clone():cmul(active[t])
         
 
-        local ep = g_opts.eps_start
+        local ep = g_opts.eps_start- num_batchs*g_opts.eps_start/g_opts.eps_end_batch
+        ep = math.max(0.1,ep)
         if torch.uniform() < ep then
             action[t] = torch.LongTensor(#batch,1)
             action[t]:random(1, g_opts.nactions)

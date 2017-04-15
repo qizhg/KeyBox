@@ -30,9 +30,9 @@ function KeyBox:add_key()
     local id = torch.randperm(self.n_keys)
     local color = torch.Tensor(self.n_keys):random(1, self.n_colors)
     for i = 1, self.n_keys do 
-        --self:place_item_rand({type = 'key', id = 'id'..id[i], color='color'..color[i], status='OnGround'}) 
-        self:place_item({type = 'key', id = 'id'..id[i], color='color'..color[i], status='OnGround'},
-                             3, 2) 
+        self:place_item_rand({type = 'key', id = 'id'..id[i], color='color'..color[i], status='OnGround'}) 
+        --self:place_item({type = 'key', id = 'id'..id[i], color='color'..color[i], status='OnGround'},
+        --                     3, 2) 
 
     end
 end
@@ -47,14 +47,14 @@ function KeyBox:add_box()
     self.n_goal_boxes = boxType:eq(1):sum()
 
     for i = 1, self.n_boxes do 
-        --self:place_item_rand({type = 'box', id = 'id'..id[i], color='color'..color[i], status='BoxType'..boxType[i]}) 
-        self:place_item({type = 'box', id = 'id'..id[i], color='color'..color[i], status='BoxType'..boxType[i]},
-                            3, 4)
+        self:place_item_rand({type = 'box', id = 'id'..id[i], color='color'..color[i], status='BoxType'..boxType[i]}) 
+        --self:place_item({type = 'box', id = 'id'..id[i], color='color'..color[i], status='BoxType'..boxType[i]},
+        --                    3, 4)
     end
 end
 function KeyBox:add_asker()
-    --self.agent = self:place_item_rand({type = 'agent'})
-    self.agent = self:place_item({type = 'agent'},3,3)
+    self.agent = self:place_item_rand({type = 'agent'})
+    --self.agent = self:place_item({type = 'agent'},3,3)
     self.agent:add_action('toggle',
         function(self) --self for agent
             local l = self.map.items[self.loc.y][self.loc.x]

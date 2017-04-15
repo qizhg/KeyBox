@@ -59,9 +59,7 @@ cmd:option('--batch_size', 32, 'size of mini-batch (the number of parallel games
 cmd:option('--gamma', 0.99, '')
 cmd:option('--lambda', 0.9, '')
 ---- lr aneeal??
-cmd:option('--lrate', 1e-3, 'learning rate')
-cmd:option('--lrate_start', 1e-3, 'coefficient of listener entropy mixing')
-cmd:option('--lrate_end_batch', 100*100, '')
+cmd:option('--lrate', 1e-4, 'learning rate')
 ---- Gumbel
 cmd:option('--Gumbel_temp', 1.0, 'fixed Gumbel_temp')
 ---- baseline mixing
@@ -70,8 +68,8 @@ cmd:option('--alpha', 0.03, 'coefficient of baseline term in the cost function')
 cmd:option('--beta_start', 0.01, 'coefficient of listener entropy mixing')
 cmd:option('--beta_end_batch', 500*50, '')
 ---- eps mixing
-cmd:option('--eps_start', 0.1, '')
-cmd:option('--eps_end_batch', 100*50, '')
+cmd:option('--eps_start', 0.3, '')
+cmd:option('--eps_end_batch', 500*50, '')
 ---- target_period
 cmd:option('--target_period', 100*2, '')
 ---- clipping
@@ -120,6 +118,7 @@ game:update()
 print(game:get_reward())
 print(game:is_active())
 --]]
+
 
 
 
