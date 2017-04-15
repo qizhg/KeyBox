@@ -31,11 +31,12 @@ function train_batch(task_id)
 
     -- do back-propagation
     ask_paramdx:zero()
-    local R = torch.Tensor(g_opts.batch_size):zero()
+    local reward_sum = torch.Tensor(#batch):zero() --running reward sum
     for t = g_opts.max_steps, 1, -1 do
         if active[t] ~= nil and active[t]:sum() > 0 then
+            reward_sum:add(reward[t])
             local out = ask_model:forward(input[t])
-            R:add(reward[t]) -- cumulative reward
+            local R = reward_sum:clone() --(#batch, )
             local baseline = out[2]
             baseline:cmul(active[t])
             R:cmul(active[t])
@@ -50,7 +51,7 @@ function train_batch(task_id)
 
 
     local stat={}
-    --stat.reward = reward_sum:sum()
+    stat.reward = reward_sum:sum()
     stat.success = success:sum()
     stat.count = g_opts.batch_size
     return stat
@@ -82,7 +83,7 @@ function train(N)
         for k, v in pairs(stat) do
             if string.sub(k, 1, 5) == 'count' then
                 local s = string.sub(k, 6)
-                --stat['reward' .. s] = stat['reward' .. s] / v
+                stat['reward' .. s] = stat['reward' .. s] / v
                 stat['success' .. s] = stat['success' .. s] / v
                 --stat['active' .. s] = stat['active' .. s] / v
                 --stat['avg_err' .. s] = stat['avg_err' .. s] / v

@@ -56,7 +56,7 @@ cmd:option('--games_config_path', 'mazebase/config/keybox.lua', 'configuration f
 ---------
 cmd:option('--epochs', 200, 'the number of training epochs')
 cmd:option('--nbatches', 100, 'the number of mini-batches in one epoch')
-cmd:option('--batch_size', 64, 'size of mini-batch (the number of parallel games) in each thread')
+cmd:option('--batch_size', 32, 'size of mini-batch (the number of parallel games) in each thread')
 ---- GAE
 cmd:option('--gamma', 0.99, '')
 cmd:option('--lambda', 0.9, '')
