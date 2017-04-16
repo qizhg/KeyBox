@@ -93,10 +93,11 @@ g_opts = cmd:parse(arg or {})
 g_mazebase.init_vocab()
 g_mazebase.init_game()
 
-g_init_model()
-
 g_log = {}
-train(g_opts.epochs)
+g_init_model()
+g_load_model()
+
+train(g_opts.epochs-#g_log)
 
 --[[
 game = g_mazebase.new_game()

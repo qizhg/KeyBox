@@ -41,6 +41,7 @@ function train_batch(task_id)
     local success = batch_success(batch)
 
     --prepare for GAE
+    --[[
     local delta = {} --TD residual
     delta[g_opts.max_steps] = reward[g_opts.max_steps] - baseline[g_opts.max_steps]
     for t=1, g_opts.max_steps-1 do 
@@ -51,6 +52,7 @@ function train_batch(task_id)
     for t=g_opts.max_steps-1, 1, -1 do 
         A_GAE[t] = delta[t] + g_opts.gamma*g_opts.lambda*A_GAE[t+1] 
     end
+    --]]
 
     -- do back-propagation
     ask_paramdx:zero()
@@ -97,8 +99,10 @@ end
 -- EVERYTHING ABOVE RUNS ON THREADS
 
 function train(N)
+
+    local threashold = 10
     for n = 1, N do
-        epoch_num= n
+        epoch_num= #g_log + 1
         local stat = {} --for the epoch
         for k = 1, g_opts.nbatches do
             batch_num = k
@@ -118,13 +122,17 @@ function train(N)
                 --stat['avg_err' .. s] = stat['avg_err' .. s] / v
             end
         end
-
         stat.epoch = #g_log + 1
         print(format_stat(stat))
         table.insert(g_log, stat)
 
         g_opts.save = 'model_epoch'
         g_save_model()
+        if stat.success > threashold/100.0 then
+            g_opts.save = 'model_at'..threashold
+            g_save_model()
+            threashold  = threashold + 10
+        end
     end
 
 end

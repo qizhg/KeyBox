@@ -118,7 +118,7 @@ function KeyBox:update()
     --finished (compare total_open vs total_type1)
     if self.n_goal_boxes == self.success_open_total then
         self.finished = true
-        print('!!!!!!!!')
+        --print('!!!!!!!!')
     end
 end
 
