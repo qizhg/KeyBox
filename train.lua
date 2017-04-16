@@ -86,7 +86,7 @@ function train_batch(task_id)
             ask_model:backward(input[t], {grad, bl_grad})
         end
     end
-    print(ask_paramdx:norm())
+    --print(ask_paramdx:norm())
 
 
     local stat={}
@@ -100,7 +100,7 @@ end
 
 function train(N)
 
-    local threashold = 10
+    local threashold = 1
     for n = 1, N do
         epoch_num= #g_log + 1
         local stat = {} --for the epoch
