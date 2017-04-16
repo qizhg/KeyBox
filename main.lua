@@ -59,7 +59,7 @@ cmd:option('--batch_size', 128, 'size of mini-batch (the number of parallel game
 cmd:option('--gamma', 0.99, '')
 cmd:option('--lambda', 0.9, '')
 ---- lr aneeal??
-cmd:option('--lrate', 1e-3, 'learning rate')
+cmd:option('--lrate', 1e-4, 'learning rate')
 ---- Gumbel
 cmd:option('--Gumbel_temp', 1.0, 'fixed Gumbel_temp')
 ---- baseline mixing
@@ -69,7 +69,7 @@ cmd:option('--beta_start', 0.01, 'coefficient of listener entropy mixing')
 cmd:option('--beta_end_batch', 100*50, '')
 ---- eps mixing
 cmd:option('--eps_start', 0.2, '')
-cmd:option('--eps_end_batch', 100*50, '')
+cmd:option('--eps_end_batch', 100*20, '')
 ---- target_period
 cmd:option('--target_period', 100*2, '')
 ---- clipping
@@ -87,7 +87,7 @@ cmd:option('--adam_beta2', 0.999, 'parameter of Adam')
 cmd:option('--adam_eps', 1e-8, 'parameter of Adam')
 --other
 cmd:option('--save', '', 'file name to save the model')
-cmd:option('--load', 'model_epoch', 'file name to load the model')
+cmd:option('--load', '', 'file name to load the model')
 g_opts = cmd:parse(arg or {})
 
 g_mazebase.init_vocab()
