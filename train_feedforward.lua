@@ -14,24 +14,16 @@ function train_batch(task_id)
     local baseline = {}
 
     --play the game (forward pass)
-    local hid_state = torch.Tensor(g_opts.batch_size, g_opts.hidsz):fill(0)
-    local cell_state = torch.Tensor(g_opts.batch_size, g_opts.hidsz):fill(0)
-    local comm_in_shape = torch.Tensor(#batch, g_opts.answer_num_symbols):fill(0)
-    local dummy_comm_in = torch.Tensor(1, g_opts.answer_num_symbols):zero()
-    dummy_comm_in[1][1] = 1
-    dummy_comm_in = dummy_comm_in:expandAs(comm_in_shape):clone()
+    local dummy = torch.Tensor(#batch, g_opts.hidsz):fill(0.1)
     for t = 1, g_opts.max_steps do
         active[t] = batch_active(batch)
         if active[t]:sum() == 0 then break end
-
-        input[t] = {}
-        input[t][1] = batch_input_asker(batch, active[t]):clone()
-        input[t][2] = dummy_comm_in:clone()
-        input[t][3] = hid_state:clone()
-        input[t][4] = cell_state:clone()
+        local mem = batch_input_asker(batch, active[t])
+        local context = dummy:clone()
+        input[t] = {context, mem}
         local out = ask_model:forward(input[t])
-        hid_state = out[3]:clone()
-        cell_state = out[4]:clone()
+        baseline[t] = out[2]:clone():cmul(active[t])
+        
 
         local ep = g_opts.eps_start- num_batchs*g_opts.eps_start/g_opts.eps_end_batch
         ep = math.max(0.1,ep)
@@ -48,10 +40,22 @@ function train_batch(task_id)
     end
     local success = batch_success(batch)
 
+    --prepare for GAE
+    --[[
+    local delta = {} --TD residual
+    delta[g_opts.max_steps] = reward[g_opts.max_steps] - baseline[g_opts.max_steps]
+    for t=1, g_opts.max_steps-1 do 
+        delta[t] = reward[t] + g_opts.gamma*baseline[t+1] - baseline[t]
+    end
+    local A_GAE={} --GAE advatage
+    A_GAE[g_opts.max_steps] = delta[g_opts.max_steps]
+    for t=g_opts.max_steps-1, 1, -1 do 
+        A_GAE[t] = delta[t] + g_opts.gamma*g_opts.lambda*A_GAE[t+1] 
+    end
+    --]]
+
     -- do back-propagation
     ask_paramdx:zero()
-    local grad_hid = torch.Tensor(g_opts.batch_size, g_opts.hidsz):fill(0)
-    local grad_cell = torch.Tensor(g_opts.batch_size, g_opts.hidsz):fill(0)
     local reward_sum = torch.Tensor(#batch):zero() --running reward sum
     for t = g_opts.max_steps, 1, -1 do
         if active[t] ~= nil and active[t]:sum() > 0 then
@@ -68,13 +72,18 @@ function train_batch(task_id)
             --grad:scatter(2, action[t], A_GAE[t]:view(-1,1):neg())
             baseline_step:add(-1, R)
             grad:scatter(2, action[t], baseline_step)
-            grad:div(g_opts.batch_size)
             
-            local grad_table = {grad, bl_grad, grad_hid, grad_cell}
-            ask_model:backward(input[t], grad_table)
-            grad_hid = ask_modules['prev_hid'].gradInput:clone()
-            grad_cell = ask_modules['prev_cell'].gradInput:clone()
-
+        --[[local beta = g_opts.beta_start - num_batchs*g_opts.beta_start/g_opts.beta_end_batch
+            beta = math.max(0,beta)
+            local logp = out[1]
+            local entropy_grad = logp:clone():add(1)
+            entropy_grad:cmul(torch.exp(logp))
+            entropy_grad:mul(beta)
+            entropy_grad:cmul(active[t]:view(-1,1):expandAs(entropy_grad):clone())
+            grad:add(entropy_grad)--]]
+            
+            grad:div(g_opts.batch_size)
+            ask_model:backward(input[t], {grad, bl_grad})
         end
     end
     --print(ask_paramdx:norm())

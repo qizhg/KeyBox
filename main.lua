@@ -95,7 +95,7 @@ g_mazebase.init_game()
 
 g_log = {}
 g_init_model()
-g_load_model()
+--g_load_model()
 
 train(g_opts.epochs-#g_log)
 

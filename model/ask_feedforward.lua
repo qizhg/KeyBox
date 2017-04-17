@@ -62,41 +62,25 @@ local function build_memory(input, context)
     return hid
 end
 
-local function build_model_memnn(input, context)
+local function build_model_memnn()
+    local input = nn.Identity()()
+    local context = nn.Identity()() --memory slots
     local hid = build_memory(input, context)
-    return hid[#hid]
+    return {input, context}, hid[#hid]
 end
 
 function build_ask_model()
 
-	local input_table, output_table
-	
-	
-	local comm_in =  nn.Identity()() --(#batch, answer_num_symbols)
-    ask_modules['comm_in'] = comm_in.data.module
-	local comm_in_embedding = nn.LinearNB(g_opts.answer_num_symbols, g_opts.hidsz)(comm_in)
+	local input_table, output_table, hid
 
-	local prev_hid = nn.Identity()() --(#batch, hidsz)
-    ask_modules['prev_hid'] = prev_hid.data.module
-    local prev_cell = nn.Identity()() --(#batch, hidsz)
-    ask_modules['prev_cell'] = prev_cell.data.module
-
-    local lstm_input = comm_in_embedding
-    local lstm_input_sz = g_opts.hidsz
-    local hidstate, cellstate = build_lstm(lstm_input, prev_hid, prev_cell, g_opts.hidsz, lstm_input_sz)
-
-    
-    local mem_in = nn.Identity()() --item words
-    local mem_out = build_model_memnn(hidstate, mem_in)
-
-    local hid_act = nonlin()(nn.Linear(g_opts.hidsz, g_opts.hidsz)(mem_out))
+    local input_table, hid = build_model_memnn()
+    local hid_act = nonlin()(nn.Linear(g_opts.hidsz, g_opts.hidsz)(hid))
     local action = nn.Linear(g_opts.hidsz, g_opts.nactions)(hid_act)
     local action_prob = nn.LogSoftMax()(action)
-    local hid_bl = nonlin()(nn.Linear(g_opts.hidsz, g_opts.hidsz)(mem_out))
+    local hid_bl = nonlin()(nn.Linear(g_opts.hidsz, g_opts.hidsz)(hid))
     local baseline = nn.Linear(g_opts.hidsz, 1)(hid_bl)
 
-    input_table = {mem_in, comm_in, prev_hid, prev_cell }
-    output_table = {action_prob, baseline, hidstate, cellstate}
+    output_table = {action_prob, baseline}
     local model = nn.gModule(input_table, output_table)
     
     for _, l in pairs(ask_shareList) do

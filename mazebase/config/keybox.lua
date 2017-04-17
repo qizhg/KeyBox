@@ -46,6 +46,7 @@ g_opts.n_colors = sso.n_colors
 
 g_opts.nactions = 6
 g_opts.max_attributes = 6
+g_opts.answer_num_symbols = 3
 
 -- KeyBox:
 local KeyBoxRangeOpts = {}
