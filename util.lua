@@ -1,68 +1,9 @@
--- Copyright (c) 2016-present, Facebook, Inc.
+-- Copyright (c) 2015-present, Facebook, Inc.
 -- All rights reserved.
 --
 -- This source code is licensed under the BSD-style license found in the
 -- LICENSE file in the root directory of this source tree. An additional grant 
 -- of patent rights can be found in the PATENTS file in the same directory.
-
-function get_agent(g, a)
-    if torch.type(g) == 'CombatGame' then
-        local c = 0
-        for i = 1, g.nagents do
-            if (not g.agents[i].team) or g.agents[i].team == 'team1' then
-                c = c + 1
-                if c == a then
-                    return g.agents[i]
-                end
-            end
-        end
-        error('can not find agent ' .. a)
-    else
-        return g.agents[a]
-    end
-end
-
-function set_current_agent(g, a)
-    g.agent = get_agent(g, a)
-end
-
-function merge_stat(stat, s)
-    for k, v in pairs(s) do
-        if type(v) == 'number' then
-            stat[k] = (stat[k] or 0) + v
-        elseif type(v) == 'table' then
-            if v.op == 'join' then
-                if stat[k] then
-                    local sz = stat[k].data:size()
-                    sz[1] = sz[1] + v.data:size(1)
-                    stat[k].data:resize(sz)
-                    stat[k].data:narrow(1, sz[1]-v.data:size(1)+1, v.data:size(1)):copy(v.data)
-                else
-                    stat[k] = {data = v.data:clone()}
-                end
-            end
-        else
-            -- it must be tensor
-            if stat[k] then
-                stat[k]:add(v)
-            else
-                stat[k] = v:clone()
-            end
-        end
-    end
-end
-
-function sample_multinomial(p)
-    -- for some reason multinomial fails sometimes
-    local s, sample = pcall(
-        function() 
-            return torch.multinomial(p, 1) 
-        end) 
-    if s == false then
-        sample = torch.multinomial(torch.ones(p:size()),1)
-    end
-    return sample
-end
 
 function tensor_to_words(input, show_prob)
     for i = 1, input:size(1) do
@@ -79,14 +20,40 @@ function tensor_to_words(input, show_prob)
     end
 end
 
+function rmsprop(opfunc, x, config, state)
+    -- (0) get/update state
+    local config = config or {}
+    local state = state or config
+    local lr = config.learningRate or 1e-2
+    local alpha = config.alpha or 0.99
+    local epsilon = config.epsilon or 1e-8
+
+    -- (1) evaluate f(x) and df/dx
+    local fx, dfdx = opfunc(x)
+
+    -- (2) initialize mean square values and square gradient storage
+    if not state.m then
+      state.m = torch.Tensor():typeAs(x):resizeAs(dfdx):zero()
+      state.tmp = torch.Tensor():typeAs(x):resizeAs(dfdx)
+    end
+
+    -- (3) calculate new (leaky) mean squared values
+    state.m:mul(alpha)
+    state.m:addcmul(1.0-alpha, dfdx, dfdx)
+
+    -- (4) perform update
+    state.tmp:sqrt(state.m):add(epsilon)
+    x:addcdiv(-lr, dfdx, state.tmp)
+
+    -- return x*, f(x) before optimization
+    return x, {fx}
+end
 
 function format_stat(stat)
     local a = {}
     for n in pairs(stat) do table.insert(a, n) end
     table.sort(a)
     local str = ''
-
-    --[[
     for i,n in ipairs(a) do
         if string.find(n,'count_') then
             str = str .. n .. ': ' .. string.format("%2.4g",stat[n]) .. ' '
@@ -104,12 +71,10 @@ function format_stat(stat)
             str = str .. n .. ': ' ..  string.format("%2.4g",stat[n]) .. ' '
         end
     end
-    --]]
     str = str .. '\n'
-    --str = str .. 'bl_cost: ' .. string.format("%2.4g",stat['bl_cost']) .. ' '
+    str = str .. 'bl_cost: ' .. string.format("%2.4g",stat['bl_cost']) .. ' '
     str = str .. 'reward: ' .. string.format("%2.4g",stat['reward']) .. ' '
     str = str .. 'success: ' .. string.format("%2.4g",stat['success']) .. ' '
-    --str = str .. 'active: ' .. string.format("%2.4g",stat['step_active']) .. ' '
     str = str .. 'epoch: ' .. stat['epoch']
     return str
 end
@@ -148,31 +113,29 @@ function g_load_model()
             return
         end
         local f = torch.load(g_opts.load)
-        ask_paramx:copy(f.paramx)
-         
+        g_paramx:copy(f.paramx)
         g_log = f.log
         g_plot_stat = {}
         for i = 1, #g_log do
             g_plot_stat[i] = {g_log[i].epoch, g_log[i].reward, g_log[i].success, g_log[i].bl_cost}
         end
-        if f['optim_state'] then g_optim_state = f['optim_state'] end
+        if f['rmsprop_state'] then g_rmsprop_state = f['rmsprop_state'] end
         print('model loaded from ', g_opts.load)
     end
 end
 
 function g_save_model()
     if g_opts.save ~= '' then
-        f = {opts=g_opts, paramx=ask_paramx, log=g_log}
-        if g_optim_state then f['optim_state'] = g_optim_state end
+        f = {opts=g_opts, paramx=g_paramx, log=g_log}
+        if g_rmsprop_state then f['rmsprop_state'] = g_rmsprop_state end
         torch.save(g_opts.save, f)
-        --print('model saved to ', g_opts.save)
+        print('model saved to ', g_opts.save)
     end
 end
 
-function plot_reward()
-    local x = torch.zeros(#g_log)
-    for i = 1, #g_log do
-        x[i] = g_log[i].reward
+function g_save_glogs()
+    if g_opts.save ~= '' then
+        f = {opts=g_opts, log=g_logs}
+        torch.save(g_opts.save, f)
     end
-    gnuplot.plot(x)
 end

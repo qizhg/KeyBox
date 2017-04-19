@@ -19,9 +19,7 @@ function MazeAgent:__init(attr, maze)
     self.actions = {}       -- id -> func
     self.nactions = 0
     self:add_move_actions()
-    if maze.toggle_action == 1 then
-        self:add_toggle_action()
-    end
+    self:add_toggle_action()
     if maze.crumb_action == 1 then
         self:add_breadcrumb_action()
     end
@@ -185,11 +183,11 @@ end
 function MazeAgent:act(action_id)
     local f = self.actions[action_id]
     if f == nil then
-        print('Available actions are: ')
-        for k,v in pairs(self.actions) do
-            print(k)
-        end
-        error('Could not find action for action_id: ' .. action_id)
+       print('Available actions are: ')
+       for k,v in pairs(self.actions) do
+	  print(k)
+       end
+       error('Could not find action for action_id: ' .. action_id)
     end
     f(self)
 end

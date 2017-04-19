@@ -17,8 +17,6 @@ function MazeItem:__init(attr)
     self.name = attr.name
     self.attr = attr
     self.loc = self.attr.loc
-
-    --reachable
     if self.type == 'block' then
         function self:is_reachable() return false end
     elseif self.type == 'door' then
@@ -79,12 +77,12 @@ function MazeItem:to_sentence(dy, dx, disable_loc)
     return s
 end
 
-function MazeItem:to_sentence_visible(visibile_attr)
+function MazeItem:to_sentence_visible(dy, dx, visibile_attr)
     local s = {}
     for _, attr_name in ipairs(visibile_attr) do
         if attr_name == 'loc' then
-            local y = self.loc.y
-            local x = self.loc.x
+            local y = self.loc.y - dy
+            local x = self.loc.x - dx
             table.insert(s, 'y' .. y .. 'x' .. x)
         else
             table.insert(s, self.attr[attr_name])

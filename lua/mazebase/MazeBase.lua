@@ -76,7 +76,6 @@ function MazeBase:add_default_items()
         self:place_item({type = 'corner', _immaterial = true} ,H,W)
     end
 
-    --[[
     if self.agent == nil then
         self.agents = {}
         for i = 1, self.nagents do
@@ -84,7 +83,6 @@ function MazeBase:add_default_items()
         end
         self.agent = self.agents[1]
     end
-    --]]
 end
 
 function MazeBase:copy_state(maze)

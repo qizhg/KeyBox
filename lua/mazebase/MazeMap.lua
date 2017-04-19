@@ -60,7 +60,7 @@ function MazeMap:get_empty_loc(fat)
 end
 
 function MazeMap:is_loc_reachable(y, x)
-    if y < 1 or x < 1 then
+     if y < 1 or x < 1 then
         return false
     elseif y > self.height or x > self.width then
         return false
@@ -79,21 +79,6 @@ function MazeMap:is_loc_visible(y, x)
     else
         return false
     end
-end
-
-function MazeMap:loc_pickup(y, x)
-    if y < 1 or x < 1 then
-        return nil
-    elseif y > self.height or x > self.width then
-        return nil
-    end
-    local l = self.items[y][x]
-    for i = 1, #l do
-        if l[i].attr.picked_up == false then 
-            return l[i] 
-        end
-    end
-    return nil
 end
 
 function MazeMap:to_image()
@@ -117,11 +102,6 @@ function MazeMap:to_image()
     img_starenemy[4] = image.load(self.img_path .. '/starenemy4.png')
     img_starenemy[5] = image.load(self.img_path .. '/starenemy5.png')
 
-    local img_objects={}
-    for s = 1, 9 do
-        img_objects[s]= image.load(self.img_path .. '/goal' .. s .. '.png')
-    end
-
     for y = 1, self.height do
         for x = 1, self.width do
             local c = img:narrow(2,1+(y-1)*K,K):narrow(3,1+(x-1)*K,K)
@@ -138,12 +118,6 @@ function MazeMap:to_image()
                         for a = 1, 9 do
                             if item.name == 'goal' .. a then
                                 c:copy(img_goals[a])
-                            end
-                        end
-                    elseif string.sub(item.type,1,3) == 'obj' then
-                        for a = 1, 9 do
-                            if item.type == 'obj' .. a then
-                                c:copy(img_objects[a])
                             end
                         end
                     elseif item.type == 'door' then
