@@ -30,9 +30,8 @@ function batch_input(batch, active, t)
             end
         end
     end
-    local dummy = torch.Tensor(#batch * g_opts.nagents, g_opts.hidsz):fill(0.1)
     input:resize(#batch * g_opts.nagents, g_opts.memsize * g_opts.max_attributes)
-    return {dummy, input}
+    return input
 end
 
 function batch_input_conv(batch, active, t)

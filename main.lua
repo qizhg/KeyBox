@@ -41,13 +41,11 @@ local function init_threads()
     return workers
 end
 
-init()
-
 local cmd = torch.CmdLine()
 -- model parameters
 cmd:option('--hidsz', 50, 'the size of the internal state vector')
 cmd:option('--nonlin', 'relu', 'non-linearity type: tanh | relu | none')
-cmd:option('--model', 'memnn', 'model type: memnn')
+cmd:option('--model', 'Recurrent', 'model type: FF | Recurrent')
 cmd:option('--init_std', 0.2, 'STD of initial weights')
 cmd:option('--max_attributes', 6, 'maximum number of attributes of each item')
 cmd:option('--memsize', 20, 'size of the memory in MemNN')
@@ -59,7 +57,7 @@ cmd:option('--max_steps', 20, 'force to end the game after this many steps')
 cmd:option('--games_config_path', 'lua/mazebase/config/keybox.lua', 'configuration file for games')
 -- training parameters
 cmd:option('--optim', 'rmsprop', 'optimization method: rmsprop | sgd')
-cmd:option('--lrate', 1e-3, 'learning rate')
+cmd:option('--lrate', 1e-4, 'learning rate')
 cmd:option('--max_grad_norm', 0, 'gradient clip value')
 cmd:option('--alpha', 0.03, 'coefficient of baseline term in the cost function')
 cmd:option('--epochs', 50, 'the number of training epochs')
@@ -74,6 +72,7 @@ cmd:option('--save', '', 'file name to save the model')
 cmd:option('--load', '', 'file name to load the model')
 g_opts = cmd:parse(arg or {})
 print(g_opts)
+init()
 
 g_mazebase.init_vocab()
 if g_opts.nworker > 1 then
@@ -87,11 +86,7 @@ for i = 1, 5 do
     g_load_model()
     g_mazebase.init_game()
 
-    --ntoggles = torch.Tensor(g_opts.nbatches)
     train(g_opts.epochs)
-    --print(ntoggles:mean())
-    --print(ntoggles:std()/torch.sqrt(g_opts.nbatches))
-    g_opts.save ='model_without_id_'..i
     g_save_model()
     g_logs[i] = g_log
 end

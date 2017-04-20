@@ -145,7 +145,7 @@ end
 
 
 function KeyBox:to_sentence(sentence)
-    local visibile_attr = {'type', 'color', 'loc', 'status'}
+    local visibile_attr = g_opts.visibile_attr
     local count=0
     local sentence = sentence or torch.Tensor(#self.items, self.max_attributes):fill(self.vocab['nil'])
     for i = 1, #self.items do
