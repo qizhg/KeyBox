@@ -59,7 +59,7 @@ function train_batch()
             grad:scatter(2, action[t], baseline)
 
             ----  compute listener_grad_action with entropy regularization
-            local beta = 0.01
+            local beta = g_opts.beta
             local logp = out[1]
             local entropy_grad = logp:clone():add(1)
             entropy_grad:cmul(torch.exp(logp))

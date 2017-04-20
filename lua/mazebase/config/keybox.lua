@@ -31,7 +31,7 @@ sso.max_attributes = g_opts.max_attributes or 6
 
 
 ----------Game Specific----------------
-sso.n_keyboxpairs = 1
+sso.n_keyboxpairs = 2
 sso.n_boxTypes = 1
 sso.n_colors = 1
 sso.costs.success_open = -5
@@ -47,7 +47,7 @@ g_opts.nactions = 6
 g_opts.max_attributes = 6
 g_opts.answer_num_symbols = 3
 
-g_opts.visibile_attr = {'type', 'color', 'loc', 'id', 'status'}
+g_opts.visibile_attr = {'type', 'color', 'loc', 'status'}
 
 -- KeyBox:
 local KeyBoxRangeOpts = {}

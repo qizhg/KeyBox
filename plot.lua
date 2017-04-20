@@ -25,9 +25,9 @@ gnuplot.pngfigure('reward.png')
 gnuplot.plot(
 	{'run 1',x1,reward[1],'with lines ls 1'},
 	{'run 2',x1,reward[2],'with lines ls 2'},
-	{'run 3',x1,reward[3],'with lines ls 3'},
-	{'run 4',x1,reward[4],'with lines ls 4'},
-	{'run 5',x1,reward[5],'with lines ls 5'}
+	{'run 3',x1,reward[3],'with lines ls 3'}
+	--{'run 4',x1,reward[4],'with lines ls 4'},
+	--{'run 5',x1,reward[5],'with lines ls 5'}
 	)
 gnuplot.xlabel('epochs(1 epoch = 100 episodes)')
 gnuplot.ylabel('reward')
@@ -38,10 +38,10 @@ gnuplot.pngfigure('success.png')
 gnuplot.plot(
 	{'run 1',x1,success[1],'with lines ls 1'},
 	{'run 2',x1,success[2],'with lines ls 2'},
-	{'run 3',x1,success[3],'with lines ls 3'},
-	{'run 4',x1,success[4],'with lines ls 4'},
-	{'run 5',x1,success[5],'with lines ls 5'}
+	{'run 3',x1,success[3],'with lines ls 3'}
+	--{'run 4',x1,success[4],'with lines ls 4'},
+	--{'run 5',x1,success[5],'with lines ls 5'}
 	)
-gnuplot.xlabel('epochs(1 epoch = 100 episodes)')
+gnuplot.xlabel('epochs (1 epoch = 100 rmsprop iterations)')
 gnuplot.ylabel('success')
 gnuplot.plotflush()
