@@ -14,7 +14,7 @@ function train_batch()
     local active = {}
 
     -- play the games
-    local dummy = torch.Tensor(#batch * g_opts.nagents, g_opts.hidsz):fill(0.1)
+    local dummy = torch.Tensor(#batch * g_opts.nagents, g_opts.hidsz):type(g_opts.dtype):fill(0.1)
     for t = 1, g_opts.max_steps do
         active[t] = batch_active(batch)
         if active[t]:sum() == 0 then break end
@@ -43,7 +43,7 @@ function train_batch()
     -- do back-propagation
     g_paramdx:zero()
     local stat = {}
-    local R = torch.Tensor(g_opts.batch_size * g_opts.nagents):zero()
+    local R = torch.Tensor(g_opts.batch_size * g_opts.nagents):type(g_opts.dtype):zero()
     for t = g_opts.max_steps, 1, -1 do
         if active[t] ~= nil and active[t]:sum() > 0 then
             local out = g_model:forward(input[t])
@@ -55,7 +55,7 @@ function train_batch()
             stat.bl_count = (stat.bl_count or 0) + active[t]:sum()
             local bl_grad = g_bl_loss:backward(baseline, R):mul(g_opts.alpha)
             baseline:add(-1, R)
-            local grad = torch.Tensor(g_opts.batch_size * g_opts.nagents, g_opts.nactions):zero()
+            local grad = torch.Tensor(g_opts.batch_size * g_opts.nagents, g_opts.nactions):type(g_opts.dtype):zero()
             grad:scatter(2, action[t], baseline)
 
             ----  compute listener_grad_action with entropy regularization

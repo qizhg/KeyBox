@@ -14,13 +14,13 @@ function train_batch()
     local active = {}
 
     -- play the games
-    local prev_mem_out = torch.Tensor(#batch * g_opts.nagents, g_opts.hidsz):fill(0)
-    local prev_hid = torch.Tensor(#batch * g_opts.nagents, g_opts.hidsz):fill(0)
-    local prev_cell = torch.Tensor(#batch * g_opts.nagents, g_opts.hidsz):fill(0)
+    local prev_mem_out = torch.Tensor(#batch * g_opts.nagents, g_opts.hidsz):type(g_opts.dtype):fill(0)
+    local prev_hid = torch.Tensor(#batch * g_opts.nagents, g_opts.hidsz):type(g_opts.dtype):fill(0)
+    local prev_cell = torch.Tensor(#batch * g_opts.nagents, g_opts.hidsz):type(g_opts.dtype):fill(0)
     for t = 1, g_opts.max_steps do
-        active[t] = batch_active(batch)
+        active[t] = batch_active(batch):type(g_opts.dtype)
         if active[t]:sum() == 0 then break end
-        local mem_state = batch_input(batch, active[t], t)
+        local mem_state = batch_input(batch, active[t], t):type(g_opts.dtype)
         input[t] = {mem_state, prev_mem_out, prev_hid, prev_cell}
         local out = g_model:forward(input[t])
         prev_mem_out = out[3]:clone()
@@ -35,7 +35,7 @@ function train_batch()
         end
         batch_act(batch, action[t]:view(-1), active[t])
         batch_update(batch, active[t])
-        reward[t] = batch_reward(batch, active[t],t == g_opts.max_steps)
+        reward[t] = batch_reward(batch, active[t],t == g_opts.max_steps):type(g_opts.dtype)
     end
     local success = batch_success(batch)
 
@@ -46,12 +46,12 @@ function train_batch()
 
     -- do back-propagation
     g_paramdx:zero()
-    local grad_mem_out = torch.Tensor(#batch * g_opts.nagents, g_opts.hidsz):fill(0)
-    local grad_hid = torch.Tensor(#batch * g_opts.nagents, g_opts.hidsz):fill(0)
-    local grad_cell = torch.Tensor(#batch * g_opts.nagents, g_opts.hidsz):fill(0)
+    local grad_mem_out = torch.Tensor(#batch * g_opts.nagents, g_opts.hidsz):type(g_opts.dtype):fill(0)
+    local grad_hid = torch.Tensor(#batch * g_opts.nagents, g_opts.hidsz):type(g_opts.dtype):fill(0)
+    local grad_cell = torch.Tensor(#batch * g_opts.nagents, g_opts.hidsz):type(g_opts.dtype):fill(0)
 
     local stat = {}
-    local R = torch.Tensor(g_opts.batch_size * g_opts.nagents):zero()
+    local R = torch.Tensor(g_opts.batch_size * g_opts.nagents):type(g_opts.dtype):zero()
     for t = g_opts.max_steps, 1, -1 do
         if active[t] ~= nil and active[t]:sum() > 0 then
             local out = g_model:forward(input[t])
@@ -66,7 +66,7 @@ function train_batch()
             local grad_bl = g_bl_loss:backward(baseline, R):mul(g_opts.alpha)
             
             --action
-            local grad_action = torch.Tensor(g_opts.batch_size * g_opts.nagents, g_opts.nactions):zero()
+            local grad_action = torch.Tensor(g_opts.batch_size * g_opts.nagents, g_opts.nactions):type(g_opts.dtype):zero()
             baseline:add(-1, R)
             grad_action:scatter(2, action[t], baseline)
             ---- entropy regularization

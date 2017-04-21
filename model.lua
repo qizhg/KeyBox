@@ -17,10 +17,10 @@ else
 end
 
 function g_init_model()
-    g_model = g_build_model()
+    g_model = g_build_model():type(g_opts.dtype)
     g_paramx, g_paramdx = g_model:getParameters()
     if g_opts.init_std > 0 then
         g_paramx:normal(0, g_opts.init_std)
     end
-    g_bl_loss = nn.MSECriterion()
+    g_bl_loss = nn.MSECriterion():type(g_opts.dtype)
 end
