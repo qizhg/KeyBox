@@ -14,11 +14,6 @@ function batch_init(size)
 end
 
 function batch_input(batch, active, t)
-    if g_opts.model == 'conv' then
-        return batch_input_conv(batch, active, t)
-    elseif g_opts.model == 'mlp' then
-        return batch_input_mlp(batch, active, t)
-    end
     active = active:view(#batch, g_opts.nagents)
     local input = torch.Tensor(#batch, g_opts.nagents, g_opts.memsize, g_opts.max_attributes)
     input:fill(g_vocab['nil'])
@@ -34,52 +29,20 @@ function batch_input(batch, active, t)
     return input
 end
 
-function batch_input_conv(batch, active, t)
+function batch_input_monitoring(batch, active, t)
     active = active:view(#batch, g_opts.nagents)
-    local input = torch.Tensor(#batch, g_opts.nagents, g_opts.conv_sz, g_opts.conv_sz, g_opts.max_attributes)
-    local context = torch.Tensor(#batch, g_opts.nagents, g_opts.memsize, g_opts.max_attributes)
+    local input = torch.Tensor(#batch, g_opts.nagents, g_opts.memsize, g_opts.max_attributes)
     input:fill(g_vocab['nil'])
-    context:fill(g_vocab['nil'])
-    for i, g in pairs(batch) do
-        for a = 1, g_opts.nagents do
-            g.agent = g.agents[a]
-            local m = nil
-            if active[i][a] == 1 then
-                m = g:to_map()
-            end
-            if m then
-                local dy = math.floor((g_opts.conv_sz - m:size(1)) / 2) + 1
-                local dx = math.floor((g_opts.conv_sz - m:size(2)) / 2) + 1
-                input[i][a]:narrow(1, dy, m:size(1)):narrow(2, dx, m:size(2)):copy(m)
-                if g.items_bytype['info'] then
-                    for j, e in pairs(g.items_bytype['info']) do
-                        for k, w in pairs(e:to_sentence(0, 0, true)) do
-                            context[i][a][j][k] = g_vocab[w]
-                        end
-                    end
-                end
-            end
-        end
-    end
-    return {input:view(#batch * g_opts.nagents, -1), context:view(#batch * g_opts.nagents, -1)}
-end
-
-function batch_input_mlp(batch, active, t)
-    -- total number of words in dictionary:
-    local mapwords = g_opts.conv_sz*g_opts.conv_sz*g_opts.nwords
-    local nilword = mapwords + g_opts.memsize*g_opts.nwords + 1
-    active = active:view(#batch, g_opts.nagents)
-    local input = torch.Tensor(#batch, g_opts.nagents, g_opts.memsize * g_opts.max_attributes)
-    input:fill(nilword)
     for i, g in pairs(batch) do
         for a = 1, g_opts.nagents do
             g.agent = g.agents[a]
             if active[i][a] == 1 then
-                g:to_map_onehot(input[i][a])
+                g:to_sentence_monitoring(input[i][a])
             end
         end
     end
-    return input:view(#batch * g_opts.nagents, -1)
+    input:resize(#batch * g_opts.nagents, g_opts.memsize * g_opts.max_attributes)
+    return input
 end
 
 function batch_act(batch, action, active)

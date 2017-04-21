@@ -53,26 +53,27 @@ local cmd = torch.CmdLine()
 -- model parameters
 cmd:option('--hidsz', 50, 'the size of the internal state vector')
 cmd:option('--nonlin', 'relu', 'non-linearity type: tanh | relu | none')
-cmd:option('--model', 'Recurrent', 'model type: FF | Recurrent')
+cmd:option('--model', 'Recurrent', 'model type of the acting agent: FF | Recurrent')
+cmd:option('--model_monitoring', 'FF', 'model type of the monitoring agent: FF | Recurrent')
 cmd:option('--init_std', 0.2, 'STD of initial weights')
 cmd:option('--max_attributes', 6, 'maximum number of attributes of each item')
 cmd:option('--memsize', 20, 'size of the memory in MemNN')
 cmd:option('--nhop', 1, 'the number of hops in MemNN')
 -- game parameters
-cmd:option('--nagents', 1, 'the number of agents')
+cmd:option('--nagents', 1, 'the number of acting agents')
 cmd:option('--nactions', 6, 'the number of agent actions')
 cmd:option('--max_steps', 30, 'force to end the game after this many steps')
-cmd:option('--games_config_path', 'lua/mazebase/config/keybox1.lua', 'configuration file for games')
+cmd:option('--games_config_path', 'lua/mazebase/config/keybox5.lua', 'configuration file for games')
 -- training parameters
 cmd:option('--optim', 'rmsprop', 'optimization method: rmsprop | sgd')
 cmd:option('--lrate', 5e-4, 'learning rate')
 cmd:option('--max_grad_norm', 0, 'gradient clip value')
 cmd:option('--alpha', 0.03, 'coefficient of baseline term in the cost function')
-cmd:option('--beta', 0.05, 'coefficient of baseline term in the cost function')
+cmd:option('--beta', 0.05, '')
 cmd:option('--epochs', 100, 'the number of training epochs')
 cmd:option('--nbatches', 100, 'the number of mini-batches in one epoch')
-cmd:option('--batch_size', 32, 'size of mini-batch (the number of parallel games) in each thread')
-cmd:option('--nworker', 8, 'the number of threads used for training')
+cmd:option('--batch_size', 128, 'size of mini-batch (the number of parallel games) in each thread')
+cmd:option('--nworker', 1, 'the number of threads used for training')
 cmd:option('--gpu', 0, '0 | 1')
 -- for rmsprop
 cmd:option('--rmsprop_alpha', 0.97, 'parameter of RMSProp')
@@ -96,15 +97,15 @@ else
     g_opts.dtype = 'torch.FloatTensor'
 
 end
-
-init_master()
 print(g_opts)
-
-
 g_mazebase.init_vocab()
+g_mazebase.init_game()
+init_master()
+
 if g_opts.nworker > 1 then
     g_workers = init_threads()
 end
+
 g_logs={}
 for i = 1, 3 do
     g_log = {}
@@ -114,11 +115,11 @@ for i = 1, 3 do
     g_mazebase.init_game()
 
     train(g_opts.epochs)
-    g_opts.save ='case3'
+    g_opts.save ='case5_nocomm_id'
     g_save_model()
     g_logs[i] = g_log
 end
-g_opts.save ='glogs_case3'
+g_opts.save ='glogs_case5_nocomm_id'
 g_save_glogs()
 
 --g_disp = require('display')

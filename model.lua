@@ -7,7 +7,7 @@
 
 require('nn')
 require('nngraph')
-
+--[[
 if g_opts.model == 'FF' then   
     paths.dofile('model/model_FF.lua')
 elseif g_opts.model == 'Recurrent' then
@@ -15,6 +15,18 @@ elseif g_opts.model == 'Recurrent' then
 else
     error('wrong model name')
 end
+--]]
+
+local model_file
+if g_opts.comm == nil then 
+	model_file = 'model/model'..'_'..g_opts.model
+else
+	model_file = 'model/model'..'_'..g_opts.comm..'_'..g_opts.model_monitoring..'_'..g_opts.model
+end
+model_file = model_file..'.lua'
+--print(model_file)
+paths.dofile(model_file)
+
 
 function g_init_model()
     g_model = g_build_model():type(g_opts.dtype)

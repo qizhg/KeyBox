@@ -9,7 +9,7 @@ function KeyBox:__init(opts, vocab)
 
     
     self:add_default_items() -- blocks, waters
-    self:add_asker_toggle()
+    self:add_toggle() --toggle action for the acting agent
     self:add_key()
     self:add_box()
     
@@ -27,31 +27,36 @@ end
 function KeyBox:add_key()
     --attr: id, color, postion, status
     local id = torch.randperm(self.n_keyboxpairs)
-    local color = torch.Tensor(self.n_keyboxpairs):random(1, self.n_colors)
+    local color = torch.randperm(self.n_colors)
     for i = 1, self.n_keyboxpairs do 
         self.key = self:place_item_rand({type = 'key', id = 'id'..id[i], color='color'..color[i], status='OnGround'}) 
-        --self:place_item({type = 'key', id = 'id'..id[i], color='color'..color[i], status='OnGround'},
-        --                     3, 2) 
-
     end
 end
 function KeyBox:add_box()
     --attr: id, color, postion, status
     local id = torch.randperm(self.n_keyboxpairs)
-    local color = torch.Tensor(self.n_keyboxpairs):random(1, self.n_colors)
+    local color = torch.randperm(self.n_colors)
     local boxType = torch.Tensor(self.n_keyboxpairs):random(1, self.n_boxTypes)
     if boxType:eq(1):sum() == 0 then
         boxType[torch.random(self.n_keyboxpairs)] = 1
     end
+    if g_opts.boxstatus ~= nil then
+        boxType:fill(2)
+        if g_opts.boxstatus == 'all' then
+            boxType:fill(1) --all valuable
+        elseif g_opts.boxstatus == 'one' then
+            boxType[torch.random(self.n_keyboxpairs)] = 1
+        end
+    end
+
     self.n_goal_boxes = boxType:eq(1):sum()
 
     for i = 1, self.n_keyboxpairs do 
         self.box = self:place_item_rand({type = 'box', id = 'id'..id[i], color='color'..color[i], status='BoxType'..boxType[i]}) 
-        --self:place_item({type = 'box', id = 'id'..id[i], color='color'..color[i], status='BoxType'..boxType[i]},
-        --                    3, 4)
+
     end
 end
-function KeyBox:add_asker_toggle()
+function KeyBox:add_toggle()
     --self.agent = self:place_item_rand({type = 'agent'})
     --self.agent = self:place_item({type = 'agent'},3,3)
     self.agent:add_action('toggle',
@@ -146,6 +151,20 @@ end
 
 function KeyBox:to_sentence(sentence)
     local visibile_attr = g_opts.visibile_attr
+    local count=0
+    local sentence = sentence or torch.Tensor(#self.items, self.max_attributes):fill(self.vocab['nil'])
+    for i = 1, #self.items do
+        if not self.items[i].attr._invisible then
+            count= count + 1
+            if count > sentence:size(1) then error('increase memsize!') end
+            self:to_sentence_item(self.items[i], sentence[count], visibile_attr)
+        end
+    end
+    return sentence
+end
+
+function KeyBox:to_sentence_monitoring(sentence)
+    local visibile_attr = g_opts.visibile_attr_monitoring
     local count=0
     local sentence = sentence or torch.Tensor(#self.items, self.max_attributes):fill(self.vocab['nil'])
     for i = 1, #self.items do

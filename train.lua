@@ -6,6 +6,7 @@
 -- of patent rights can be found in the PATENTS file in the same directory.
 require('optim')
 
+--[[
 if g_opts.model == 'FF' then   
     paths.dofile('train_batch/train_batch_FF.lua')
 elseif g_opts.model == 'Recurrent' then
@@ -13,6 +14,17 @@ elseif g_opts.model == 'Recurrent' then
 else
     error('wrong model name')
 end
+--]]
+
+local train_batch_file
+if g_opts.comm == nil then 
+    train_batch_file = 'train_batch/train_batch'..'_'..g_opts.model
+else
+    train_batch_file = 'train_batch/train_batch'..'_'..g_opts.comm..'_'..g_opts.model_monitoring..'_'..g_opts.model
+end
+train_batch_file = train_batch_file..'.lua'
+--print(train_batch_file)
+paths.dofile(train_batch_file)
 
 function train(N)
     for n = 1, N do
