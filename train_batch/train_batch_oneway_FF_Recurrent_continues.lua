@@ -18,7 +18,7 @@ function train_batch()
     local prev_mem_out = torch.Tensor(#batch * g_opts.nagents, g_opts.hidsz):type(g_opts.dtype):fill(0)
     local prev_hid = torch.Tensor(#batch * g_opts.nagents, g_opts.hidsz):type(g_opts.dtype):fill(0)
     local prev_cell = torch.Tensor(#batch * g_opts.nagents, g_opts.hidsz):type(g_opts.dtype):fill(0)
-    symbol[0] = torch.Tensor(#batch * g_opts.nagents, 1):type(g_opts.dtype):fill(1)
+    symbol[0] = torch.Tensor(#batch * g_opts.nagents, g_opts.nsymbols_monitoring):type(g_opts.dtype):fill(0)
     local dummy = torch.Tensor(#batch * g_opts.nagents, g_opts.hidsz):type(g_opts.dtype):fill(0.1)
     for t = 1, g_opts.max_steps do
         active[t] = batch_active(batch)
@@ -33,6 +33,7 @@ function train_batch()
         prev_mem_out = out[3]:clone()
         prev_hid = out[4]:clone()
         prev_cell = out[5]:clone()
+        symbol[t] = out[6]:clone()
 
 	-- for some reason multinomial fails sometimes
         if not pcall(function() 
@@ -40,13 +41,6 @@ function train_batch()
 		    end) 
     then
             action[t] = torch.multinomial(torch.ones(out[1]:size()),1)
-        end
-        
-        if not pcall(function() 
-          symbol[t] = torch.multinomial(torch.exp(out[6]), 1) 
-            end) 
-    then
-            symbol[t] = torch.multinomial(torch.ones(out[6]:size()),1)
         end
         
         batch_act(batch, action[t]:view(-1), active[t])
@@ -65,7 +59,7 @@ function train_batch()
     local grad_mem_out = torch.Tensor(#batch * g_opts.nagents, g_opts.hidsz):type(g_opts.dtype):fill(0)
     local grad_hid = torch.Tensor(#batch * g_opts.nagents, g_opts.hidsz):type(g_opts.dtype):fill(0)
     local grad_cell = torch.Tensor(#batch * g_opts.nagents, g_opts.hidsz):type(g_opts.dtype):fill(0)
-
+    local grad_symbol = torch.Tensor(#batch * g_opts.nagents, g_opts.nsymbols_monitoring):type(g_opts.dtype):fill(0)
     local stat = {}
     local R = torch.Tensor(g_opts.batch_size * g_opts.nagents):type(g_opts.dtype):zero()
     for t = g_opts.max_steps, 1, -1 do
@@ -75,24 +69,7 @@ function train_batch()
             R:cmul(active[t])
             
             --monitoring
-            ----baseline
-            local baseline_monitoring = out[7]
-            baseline_monitoring:cmul(active[t])
-            stat.bl_cost = (stat.bl_cost or 0) + g_bl_loss:forward(baseline_monitoring, R)
-            stat.bl_count = (stat.bl_count or 0) + active[t]:sum()
-            local grad_bl_monitoring = g_bl_loss:backward(baseline_monitoring, R):mul(g_opts.alpha)
-            ----symbol action
-            local grad_symbol = torch.Tensor(g_opts.batch_size * g_opts.nagents, g_opts.nsymbols_monitoring):type(g_opts.dtype):zero()
-            baseline_monitoring:add(-1, R)
-            grad_symbol:scatter(2, symbol[t], baseline_monitoring)
-            ------ entropy regularization
-            local logp_symbol = out[6]
-            local entropy_grad_symbol = logp_symbol:clone():add(1)
-            entropy_grad_symbol:cmul(torch.exp(logp_symbol))
-            entropy_grad_symbol:mul(g_opts.beta)
-            entropy_grad_symbol:cmul(active[t]:view(-1,1):expandAs(entropy_grad_symbol):clone())
-            grad_symbol:add(entropy_grad_symbol)
-            grad_symbol:div(g_opts.batch_size)
+            --grad_symbol
 
             --acting
             ----baseline
@@ -117,11 +94,12 @@ function train_batch()
 
             --backward with grad recurrent
             g_model:backward(input[t], 
-                {grad_action, grad_bl, grad_mem_out, grad_hid, grad_cell, grad_symbol, grad_bl_monitoring}
+                {grad_action, grad_bl, grad_mem_out, grad_hid, grad_cell, grad_symbol}
                 )
             grad_mem_out = g_modules['prev_mem_out'].gradInput:clone()
             grad_hid = g_modules['prev_hid'].gradInput:clone()
             grad_cell = g_modules['prev_cell'].gradInput:clone()
+            grad_symbol = g_modules['comm_in'].gradInput:clone()
             
         end
     end

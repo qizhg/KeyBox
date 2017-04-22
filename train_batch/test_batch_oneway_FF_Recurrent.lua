@@ -18,8 +18,10 @@ function train_batch()
     local prev_mem_out = torch.Tensor(#batch * g_opts.nagents, g_opts.hidsz):type(g_opts.dtype):fill(0)
     local prev_hid = torch.Tensor(#batch * g_opts.nagents, g_opts.hidsz):type(g_opts.dtype):fill(0)
     local prev_cell = torch.Tensor(#batch * g_opts.nagents, g_opts.hidsz):type(g_opts.dtype):fill(0)
-    symbol[0] = torch.Tensor(#batch * g_opts.nagents, 1):type(g_opts.dtype):fill(1)
+    symbol[0] = torch.Tensor(#batch * g_opts.nagents, g_opts.hidsz):type(g_opts.dtype):fill(1)
     local dummy = torch.Tensor(#batch * g_opts.nagents, g_opts.hidsz):type(g_opts.dtype):fill(0.1)
+
+
     for t = 1, g_opts.max_steps do
         active[t] = batch_active(batch)
         if active[t]:sum() == 0 then break end
@@ -48,12 +50,23 @@ function train_batch()
     then
             symbol[t] = torch.multinomial(torch.ones(out[6]:size()),1)
         end
+
+        if batch[1].finished == false then 
+            batch[1]:to_print()
+            print('symbol prob:')
+            print(torch.exp(out[6])[1]:view(1,-1))
+            print('action: '..batch[1].agent.action_names[action[t][1][1]]
+                ..', symbol: '..symbol[t][1][1])
+        end
+
         
         batch_act(batch, action[t]:view(-1), active[t])
         batch_update(batch, active[t])
         reward[t] = batch_reward(batch, active[t],t == g_opts.max_steps)
     end
     local success = batch_success(batch)
+    print('episode ends!!')
+    io.read() 
 
     -- increase difficulty if necessary
     if g_opts.curriculum == 1 then

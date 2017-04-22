@@ -34,7 +34,7 @@ function KeyBox:add_box()
     --attr: id, color, postion, status
     local id = torch.randperm(self.n_keyboxpairs)
     local color = torch.randperm(self.n_colors)
-    local boxType = torch.Tensor(self.n_keyboxpairs):fill(2)
+    local boxType = torch.Tensor(self.n_keyboxpairs):type(g_opts.dtype):fill(2)
     if g_opts.boxstatus == 'all' then
         boxType:fill(1) --all valuable
     elseif g_opts.boxstatus == 'one' then
@@ -141,7 +141,7 @@ end
 function KeyBox:to_sentence(sentence)
     local visibile_attr = g_opts.visibile_attr
     local count=0
-    local sentence = sentence or torch.Tensor(#self.items, self.max_attributes):fill(self.vocab['nil'])
+    local sentence = sentence or torch.Tensor(#self.items, self.max_attributes):type(g_opts.dtype):fill(self.vocab['nil'])
     for i = 1, #self.items do
         if not self.items[i].attr._invisible then
             count= count + 1
@@ -155,7 +155,7 @@ end
 function KeyBox:to_sentence_monitoring(sentence)
     local visibile_attr = g_opts.visibile_attr_monitoring
     local count=0
-    local sentence = sentence or torch.Tensor(#self.items, self.max_attributes):fill(self.vocab['nil'])
+    local sentence = sentence or torch.Tensor(#self.items, self.max_attributes):type(g_opts.dtype):fill(self.vocab['nil'])
     for i = 1, #self.items do
         if not self.items[i].attr._invisible then
             count= count + 1

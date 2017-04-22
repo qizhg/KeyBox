@@ -144,9 +144,6 @@ function g_build_model()
 
     local hid_act_monitoring = nonlin()(nn.Linear(g_opts.hidsz, g_opts.hidsz)(mem_out_monitoring))
     local action_monitoring = nn.Linear(g_opts.hidsz, g_opts.nsymbols_monitoring)(hid_act_monitoring)
-    local action_prob_monitoring = nn.LogSoftMax()(action_monitoring)
-    local hid_bl_monitoring = nonlin()(nn.Linear(g_opts.hidsz, g_opts.hidsz)(mem_out_monitoring))
-    local baseline_monitoring = nn.Linear(g_opts.hidsz, 1)(hid_bl_monitoring)
     --END monitoring--
 
     
@@ -158,13 +155,11 @@ function g_build_model()
     g_modules['prev_hid'] = prev_hid.data.module
     local prev_cell = nn.Identity()()
     g_modules['prev_cell'] = prev_cell.data.module
-    local comm_in = nn.Identity()() --(#batch) integears
+    local comm_in = nn.Identity()() --continues of size nsymbols_monitoring
     g_modules['comm_in'] = comm_in.data.module
 
-    local symbol_LT = nn.LookupTable(g_opts.nsymbols_monitoring, g_opts.hidsz)(comm_in)
-    g_modules['symbol_LT'] = symbol_LT
-    local symbol_embedding = nn.Sum(2)(symbol_LT)
-    local lstm_in = nn.JoinTable(2)({symbol_embedding, prev_mem_out})
+    local comm_in_embedding = nn.LinearNB(g_opts.nsymbols_monitoring, g_opts.hidsz)(comm_in)
+    local lstm_in = nn.JoinTable(2)({comm_in_embedding, prev_mem_out})
     local hid, cell = build_lstm(lstm_in, prev_hid, prev_cell, g_opts.hidsz, 2 * g_opts.hidsz)
 
     local mem_state = nn.Identity()()
@@ -180,7 +175,7 @@ function g_build_model()
     
     local model = nn.gModule(
         {context_monitoring, mem_state_monitoring, mem_state, prev_mem_out, comm_in, prev_hid, prev_cell}, 
-        {action_prob, baseline, mem_out, hid, cell, action_prob_monitoring, baseline_monitoring}
+        {action_prob, baseline, mem_out, hid, cell, action_monitoring}
         )
 
     for _, l in pairs(g_shareList) do

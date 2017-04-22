@@ -67,7 +67,7 @@ cmd:option('--exp_id', 1, '')
 cmd:option('--games_config_path', 'lua/mazebase/config/keybox1.lua', 'configuration file for games')
 -- training parameters
 cmd:option('--optim', 'rmsprop', 'optimization method: rmsprop | sgd')
-cmd:option('--lrate', 1e-4, 'learning rate')
+cmd:option('--lrate', 5e-4, 'learning rate')
 cmd:option('--max_grad_norm', 0, 'gradient clip value')
 cmd:option('--alpha', 0.03, 'coefficient of baseline term in the cost function')
 cmd:option('--beta', 0.05, '')
@@ -108,7 +108,7 @@ if g_opts.nworker > 1 then
 end
 
 g_logs={}
-for i = 1, 3 do
+for i = 1, 1 do
     g_log = {}
     if g_opts.optim == 'rmsprop' then g_rmsprop_state = {} end
     g_init_model()

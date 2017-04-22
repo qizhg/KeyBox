@@ -22,8 +22,11 @@ if g_opts.comm == nil then
 else
     train_batch_file = 'train_batch/train_batch'..'_'..g_opts.comm..'_'..g_opts.model_monitoring..'_'..g_opts.model
 end
+if g_opts.comm_signal ~=nil then
+    train_batch_file= train_batch_file..'_'..g_opts.comm_signal
+end 
 train_batch_file = train_batch_file..'.lua'
---print(train_batch_file)
+print(train_batch_file)
 paths.dofile(train_batch_file)
 
 function train(N)

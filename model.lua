@@ -23,8 +23,11 @@ if g_opts.comm == nil then
 else
 	model_file = 'model/model'..'_'..g_opts.comm..'_'..g_opts.model_monitoring..'_'..g_opts.model
 end
+if g_opts.comm_signal ~=nil then
+    model_file= model_file..'_'..g_opts.comm_signal
+end 
 model_file = model_file..'.lua'
---print(model_file)
+print(model_file)
 paths.dofile(model_file)
 
 

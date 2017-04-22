@@ -49,9 +49,8 @@ g_opts.model = 'Recurrent'
 
 g_opts.comm = 'oneway'
 g_opts.visibile_attr_monitoring = {'type', 'color', 'id'}
-g_opts.nsymbols_monitoring = 2
+g_opts.nsymbols_monitoring = 4
 g_opts.model_monitoring = 'FF'
-g_opts.share_word_embedding = true
 
 -- KeyBox:
 local KeyBoxRangeOpts = {}
