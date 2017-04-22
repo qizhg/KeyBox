@@ -32,22 +32,24 @@ sso.max_attributes = g_opts.max_attributes or 6
 
 ----------Game Specific----------------
 sso.n_keyboxpairs = 1
-sso.n_boxTypes = 1
-sso.n_colors = 1
+sso.boxstatus = 'all' --all | one
+sso.n_colors = sso.n_keyboxpairs
 sso.costs.success_open = -5
-sso.costs.failure_open = 1
 
 
 g_opts.MH = mapH[1]
 g_opts.MW = mapW[1]
-g_opts.n_keys = sso.n_keys
+g_opts.n_keyboxpairs = sso.n_keyboxpairs
 g_opts.n_colors = sso.n_colors
+g_opts.boxstatus = sso.boxstatus
 
-g_opts.nactions = 6
-g_opts.max_attributes = 6
-g_opts.answer_num_symbols = 3
 
 g_opts.visibile_attr = {'type', 'color', 'loc', 'id', 'status'}
+g_opts.model = 'FF'
+
+--g_opts.comm = 'oneway'
+--g_opts.visibile_attr_monitoring = {'type', 'color', 'id'}
+--g_opts.nsymbols_monitoring = 2
 
 -- KeyBox:
 local KeyBoxRangeOpts = {}

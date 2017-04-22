@@ -5,8 +5,6 @@ function KeyBox:__init(opts, vocab)
 
     self.n_keyboxpairs = opts.n_keyboxpairs
     self.n_colors = opts.n_colors
-    self.n_boxTypes =  opts.n_boxTypes
-
     
     self:add_default_items() -- blocks, waters
     self:add_toggle() --toggle action for the acting agent
@@ -36,17 +34,13 @@ function KeyBox:add_box()
     --attr: id, color, postion, status
     local id = torch.randperm(self.n_keyboxpairs)
     local color = torch.randperm(self.n_colors)
-    local boxType = torch.Tensor(self.n_keyboxpairs):random(1, self.n_boxTypes)
-    if boxType:eq(1):sum() == 0 then
+    local boxType = torch.Tensor(self.n_keyboxpairs):fill(2)
+    if g_opts.boxstatus == 'all' then
+        boxType:fill(1) --all valuable
+    elseif g_opts.boxstatus == 'one' then
         boxType[torch.random(self.n_keyboxpairs)] = 1
-    end
-    if g_opts.boxstatus ~= nil then
-        boxType:fill(2)
-        if g_opts.boxstatus == 'all' then
-            boxType:fill(1) --all valuable
-        elseif g_opts.boxstatus == 'one' then
-            boxType[torch.random(self.n_keyboxpairs)] = 1
-        end
+    else
+        error('wrong box status')
     end
 
     self.n_goal_boxes = boxType:eq(1):sum()
@@ -94,14 +88,11 @@ function KeyBox:add_toggle()
                 if the_third.attr.type == 'key' then
                     --do nonthing
                 elseif key_pickedup.attr.id ~= the_third.attr.id then
-                    --do nothing
+                    self.maze.finished = true
                 else --open the box
                     if the_third.attr.status == 'BoxType'..1 then
                         self.maze.success_open = 1
                         self.maze.success_open_total = self.maze.success_open_total +  1
-                    else
-                        self.maze.failure_open = 1
-                        self.maze.failure_open_total = self.maze.failure_open_total + 1
                     end
                     self.maze:remove_item(key_pickedup)
                     self.maze:remove_item(the_third)
@@ -135,9 +126,7 @@ end
 function KeyBox:get_reward()
     local reward = parent.get_reward(self)
     reward = reward - self.success_open * self.costs.success_open
-    reward = reward - self.failure_open * self.costs.failure_open
     self.success_open = 0
-    self.failure_open = 0
     return reward
 end
 
@@ -178,7 +167,7 @@ function KeyBox:to_sentence_monitoring(sentence)
 end
 
 function KeyBox:is_success()
-    if self.finished == true then
+    if self.n_goal_boxes == self.success_open_total then
         return true
     else
         return false

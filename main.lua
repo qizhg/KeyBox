@@ -63,10 +63,11 @@ cmd:option('--nhop', 1, 'the number of hops in MemNN')
 cmd:option('--nagents', 1, 'the number of acting agents')
 cmd:option('--nactions', 6, 'the number of agent actions')
 cmd:option('--max_steps', 30, 'force to end the game after this many steps')
-cmd:option('--games_config_path', 'lua/mazebase/config/keybox5.lua', 'configuration file for games')
+cmd:option('--exp_id', 1, '')
+cmd:option('--games_config_path', 'lua/mazebase/config/keybox1.lua', 'configuration file for games')
 -- training parameters
 cmd:option('--optim', 'rmsprop', 'optimization method: rmsprop | sgd')
-cmd:option('--lrate', 5e-4, 'learning rate')
+cmd:option('--lrate', 1e-4, 'learning rate')
 cmd:option('--max_grad_norm', 0, 'gradient clip value')
 cmd:option('--alpha', 0.03, 'coefficient of baseline term in the cost function')
 cmd:option('--beta', 0.05, '')
@@ -82,7 +83,7 @@ cmd:option('--rmsprop_eps', 1e-6, 'parameter of RMSProp')
 cmd:option('--save', '', 'file name to save the model')
 cmd:option('--load', '', 'file name to load the model')
 g_opts = cmd:parse(arg or {})
-
+g_opts.games_config_path = 'lua/mazebase/config/keybox'..g_opts.exp_id..'.lua'
 if g_opts.gpu == 1 then
     require 'cutorch'
     require 'cunn'
@@ -97,10 +98,10 @@ else
     g_opts.dtype = 'torch.FloatTensor'
 
 end
-print(g_opts)
 g_mazebase.init_vocab()
 g_mazebase.init_game()
 init_master()
+print(g_opts)
 
 if g_opts.nworker > 1 then
     g_workers = init_threads()
@@ -115,11 +116,11 @@ for i = 1, 3 do
     g_mazebase.init_game()
 
     train(g_opts.epochs)
-    g_opts.save ='case5_nocomm_id'
+    g_opts.save ='exp'..g_opts.exp_id
     g_save_model()
     g_logs[i] = g_log
 end
-g_opts.save ='glogs_case5_nocomm_id'
+g_opts.save ='glogs_exp'..g_opts.exp_id
 g_save_glogs()
 
 --g_disp = require('display')

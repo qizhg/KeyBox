@@ -44,12 +44,13 @@ g_opts.n_colors = sso.n_colors
 g_opts.boxstatus = sso.boxstatus
 
 
-g_opts.visibile_attr = {'type', 'color', 'loc', 'id', 'status'}
-g_opts.model = 'FF'
+g_opts.visibile_attr = {'type', 'color', 'loc', 'status'}
+g_opts.model = 'Recurrent'
 
---g_opts.comm = 'oneway'
---g_opts.visibile_attr_monitoring = {'type', 'color', 'id'}
---g_opts.nsymbols_monitoring = 2
+g_opts.comm = 'oneway'
+g_opts.visibile_attr_monitoring = {'type', 'color', 'id'}
+g_opts.nsymbols_monitoring = 2
+g_opts.model_monitoring = 'FF'
 
 -- KeyBox:
 local KeyBoxRangeOpts = {}

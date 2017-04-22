@@ -32,7 +32,7 @@ sso.max_attributes = g_opts.max_attributes or 6
 
 ----------Game Specific----------------
 sso.n_keyboxpairs = 2
-sso.boxstatus = 'all' --all | one
+sso.boxstatus = 'one' --all | one
 sso.n_colors = sso.n_keyboxpairs
 sso.costs.success_open = -5
 
@@ -44,12 +44,13 @@ g_opts.n_colors = sso.n_colors
 g_opts.boxstatus = sso.boxstatus
 
 
-g_opts.visibile_attr = {'type', 'color', 'loc', 'id', 'status'}
-g_opts.model = 'FF'
+g_opts.visibile_attr = {'type', 'color', 'loc', 'status'}
+g_opts.model = 'Recurrent'
 
---g_opts.comm = 'oneway'
---g_opts.visibile_attr_monitoring = {'type', 'color', 'id'}
---g_opts.nsymbols_monitoring = 2
+g_opts.comm = 'oneway'
+g_opts.visibile_attr_monitoring = {'type', 'color', 'id'}
+g_opts.nsymbols_monitoring = 2
+g_opts.model_monitoring = 'FF'
 
 -- KeyBox:
 local KeyBoxRangeOpts = {}
