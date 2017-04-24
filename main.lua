@@ -64,15 +64,15 @@ cmd:option('--max_steps', 30, 'force to end the game after this many steps')
 cmd:option('--exp_id', 15, '')
 -- training parameters
 cmd:option('--optim', 'rmsprop', 'optimization method: rmsprop | sgd')
-cmd:option('--lrate', 1e-4, 'learning rate')
+cmd:option('--lrate', 2.5e-4, 'learning rate')
 cmd:option('--max_grad_norm', 0, 'gradient clip value')
 cmd:option('--alpha', 0.03, 'coefficient of baseline term in the cost function')
 cmd:option('--beta', 0.1, '')
 cmd:option('--Gumbel_temp', 1.0, '')
-cmd:option('--epochs', 100, 'the number of training epochs')
+cmd:option('--epochs', 50, 'the number of training epochs')
 cmd:option('--nbatches', 100, 'the number of mini-batches in one epoch')
-cmd:option('--batch_size', 200, 'size of mini-batch (the number of parallel games) in each thread')
-cmd:option('--nworker', 1, 'the number of threads used for training')
+cmd:option('--batch_size', 64, 'size of mini-batch (the number of parallel games) in each thread')
+cmd:option('--nworker', 4, 'the number of threads used for training')
 -- for rmsprop
 cmd:option('--rmsprop_alpha', 0.97, 'parameter of RMSProp')
 cmd:option('--rmsprop_eps', 1e-6, 'parameter of RMSProp')
@@ -91,7 +91,7 @@ if g_opts.nworker > 1 then
 end
 
 g_logs={}
-for i = 1, 3 do
+for i = 1, 1 do
     g_log = {}
     if g_opts.optim == 'rmsprop' then g_rmsprop_state = {} end
     g_init_model()
