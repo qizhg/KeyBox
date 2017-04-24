@@ -53,8 +53,6 @@ local cmd = torch.CmdLine()
 -- model parameters
 cmd:option('--hidsz', 50, 'the size of the internal state vector')
 cmd:option('--nonlin', 'relu', 'non-linearity type: tanh | relu | none')
-cmd:option('--model', 'Recurrent', 'model type of the acting agent: FF | Recurrent')
-cmd:option('--model_monitoring', 'FF', 'model type of the monitoring agent: FF | Recurrent')
 cmd:option('--init_std', 0.2, 'STD of initial weights')
 cmd:option('--max_attributes', 6, 'maximum number of attributes of each item')
 cmd:option('--memsize', 20, 'size of the memory in MemNN')
@@ -63,7 +61,7 @@ cmd:option('--nhop', 1, 'the number of hops in MemNN')
 cmd:option('--nagents', 1, 'the number of acting agents')
 cmd:option('--nactions', 6, 'the number of agent actions')
 cmd:option('--max_steps', 30, 'force to end the game after this many steps')
-cmd:option('--exp_id', 7, '')
+cmd:option('--exp_id', 8, '')
 -- training parameters
 cmd:option('--optim', 'rmsprop', 'optimization method: rmsprop | sgd')
 cmd:option('--lrate', 5e-4, 'learning rate')
@@ -92,6 +90,18 @@ if g_opts.nworker > 1 then
     g_workers = init_threads()
 end
 
-g_init_model()
 g_logs={}
-train(1)
+for i = 1, 3 do
+    g_log = {}
+    if g_opts.optim == 'rmsprop' then g_rmsprop_state = {} end
+    g_init_model()
+    g_load_model()
+    g_mazebase.init_game()
+
+    train(g_opts.epochs)
+    g_opts.save ='exp'..g_opts.exp_id..'.t7'
+    g_save_model()
+    g_logs[i] = g_log
+end
+g_opts.save ='glogs_exp'..g_opts.exp_id..'.t7'
+g_save_glogs()

@@ -102,7 +102,6 @@ function train_batch()
     -- do back-propagation
     g_paramdx:zero()
     local grad_comm = torch.Tensor(#batch * g_opts.nagents, g_opts.nsymbols_monitoring):fill(0)
-
     local grad_mem_out_monitoring = torch.Tensor(#batch * g_opts.nagents, g_opts.hidsz):fill(0) --4
     local grad_hid_context_monitoring = torch.Tensor(#batch * g_opts.nagents, g_opts.hidsz):fill(0) --5
     local grad_cell_context_monitoring = torch.Tensor(#batch * g_opts.nagents, g_opts.hidsz):fill(0) --6
@@ -185,7 +184,10 @@ function train_batch()
             grad_table[15] = grad_cell_comm_acting:clone()
             grad_table[16] = grad_hid_final_acting:clone()
             grad_table[17] = grad_cell_final_acting:clone()
+            
             g_model:backward(input[t], grad_table)
+            
+            grad_comm = g_modules['comm_in'].gradInput:clone()
             grad_mem_out_monitoring = g_modules['prev_mem_out_monitoring'].gradInput:clone()
             grad_hid_context_monitoring = g_modules['prev_hid_context_monitoring'].gradInput:clone()
             grad_cell_context_monitoring = g_modules['prev_cell_context_monitoring'].gradInput:clone()
