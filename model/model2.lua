@@ -163,7 +163,7 @@ function g_build_model()
     local pre_out_monitoring = nn.JoinTable(2)({mem_out_monitoring, hid_comm_monitoring})
 
     -----out
-    local hid_act_monitoring = nonlin()(nn.Linear(g_opts.hidsz, g_opts.hidsz)(pre_out_monitoring))
+    local hid_act_monitoring = nonlin()(nn.Linear(2*g_opts.hidsz, g_opts.hidsz)(pre_out_monitoring))
     local action_monitoring = nn.Linear(g_opts.hidsz, g_opts.nsymbols_monitoring)(hid_act_monitoring)
     local action_prob_monitoring = nn.LogSoftMax()(action_monitoring)
     --END monitoring--
@@ -191,10 +191,10 @@ function g_build_model()
     -----final (not recurrent)
     local pre_out_acting = nn.JoinTable(2)({mem_out_acting, hid_comm_acting})
     -----out
-    local hid_act_acting = nonlin()(nn.Linear(g_opts.hidsz, g_opts.hidsz)(pre_out_acting))
+    local hid_act_acting = nonlin()(nn.Linear(2*g_opts.hidsz, g_opts.hidsz)(pre_out_acting))
     local action_acting = nn.Linear(g_opts.hidsz, g_opts.nactions)(hid_act_acting)
     local action_prob_acting = nn.LogSoftMax()(action_acting)
-    local hid_bl_acting = nonlin()(nn.Linear(g_opts.hidsz, g_opts.hidsz)(pre_out_acting))
+    local hid_bl_acting = nonlin()(nn.Linear(2*g_opts.hidsz, g_opts.hidsz)(pre_out_acting))
     local baseline_acting = nn.Linear(g_opts.hidsz, 1)(hid_bl_acting)
     --END acting--
     
