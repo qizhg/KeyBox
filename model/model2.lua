@@ -138,49 +138,94 @@ function g_build_model()
     g_modules = {}
 
     --monitoring
+    ------memory
+    local prev_mem_out_monitoring = nn.Identity()()
+    g_modules['prev_mem_out_monitoring'] = prev_mem_out_monitoring.data.module
+    local prev_hid_context_monitoring = nn.Identity()() 
+    g_modules['prev_hid_context_monitoring'] = prev_hid_context_monitoring.data.module
+    local prev_cell_context_monitoring = nn.Identity()()
+    g_modules['prev_cell_context_monitoring'] = prev_cell_context_monitoring.data.module
+    local hid_context_monitoring, cell_context_monitoring = build_lstm(prev_mem_out_monitoring, prev_hid_context_monitoring, prev_cell_context_monitoring, g_opts.hidsz, g_opts.hidsz)
     local mem_state_monitoring = nn.Identity()()
-    local context_monitoring = nn.Identity()()  --constant
-    local mem_out_monitoring = build_model_memnn_monitoring(context_monitoring, mem_state_monitoring)
+    local mem_out_monitoring = build_model_memnn_monitoring(hid_context_monitoring, mem_state_monitoring)
 
-    local hid_act_monitoring = nonlin()(nn.Linear(g_opts.hidsz, g_opts.hidsz)(mem_out_monitoring))
+    ------comm
+    local comm_in = nn.Identity()() --(#batch, #symbols)
+    g_modules['comm_in'] = comm_in.data.module
+    local prev_hid_comm_monitoring = nn.Identity()() 
+    g_modules['prev_hid_comm_monitoring'] = prev_hid_comm_monitoring.data.module
+    local prev_cell_comm_monitoring = nn.Identity()()
+    g_modules['prev_cell_comm_monitoring'] = prev_cell_comm_monitoring.data.module
+    local comm_in_embedding_monitoring = nn.LinearNB(g_opts.nsymbols_monitoring, g_opts.hidsz)(comm_in)
+    local hid_comm_monitoring, cell_comm_monitoring = build_lstm(comm_in_embedding_monitoring, prev_hid_comm_monitoring, prev_cell_comm_monitoring, g_opts.hidsz, g_opts.hidsz)
+
+    -----final (not recurrent)
+    local pre_out_monitoring = nn.JoinTable(2)({mem_out_monitoring, hid_comm_monitoring})
+
+    -----out
+    local hid_act_monitoring = nonlin()(nn.Linear(g_opts.hidsz, g_opts.hidsz)(pre_out_monitoring))
     local action_monitoring = nn.Linear(g_opts.hidsz, g_opts.nsymbols_monitoring)(hid_act_monitoring)
     local action_prob_monitoring = nn.LogSoftMax()(action_monitoring)
-    local hid_bl_monitoring = nonlin()(nn.Linear(g_opts.hidsz, g_opts.hidsz)(mem_out_monitoring))
-    local baseline_monitoring = nn.Linear(g_opts.hidsz, 1)(hid_bl_monitoring)
     --END monitoring--
 
-    
     --acting
-    ----LSTM build context vector
-    local prev_mem_out = nn.Identity()()
-    g_modules['prev_mem_out'] = prev_mem_out.data.module
-    local prev_hid = nn.Identity()() 
-    g_modules['prev_hid'] = prev_hid.data.module
-    local prev_cell = nn.Identity()()
-    g_modules['prev_cell'] = prev_cell.data.module
-    local comm_in = nn.Identity()() --(#batch) integears
-    g_modules['comm_in'] = comm_in.data.module
+    ------memory
+    local prev_mem_out_acting = nn.Identity()()
+    g_modules['prev_mem_out_acting'] = prev_mem_out_acting.data.module
+    local prev_hid_context_acting = nn.Identity()() 
+    g_modules['prev_hid_context_acting'] = prev_hid_context_acting.data.module
+    local prev_cell_context_acting = nn.Identity()()
+    g_modules['prev_cell_context_acting'] = prev_cell_context_acting.data.module
+    local hid_context_acting, cell_context_acting = build_lstm(prev_mem_out_acting, prev_hid_context_acting, prev_cell_context_acting, g_opts.hidsz, g_opts.hidsz)
+    local mem_state_acting = nn.Identity()()
+    local mem_out_acting = build_model_memnn(hid_context_acting, mem_state_acting)
 
-    local symbol_LT = nn.LookupTable(g_opts.nsymbols_monitoring, g_opts.hidsz)(comm_in)
-    g_modules['symbol_LT'] = symbol_LT
-    local symbol_embedding = nn.Sum(2)(symbol_LT)
-    local lstm_in = nn.JoinTable(2)({symbol_embedding, prev_mem_out})
-    local hid, cell = build_lstm(lstm_in, prev_hid, prev_cell, g_opts.hidsz, 2 * g_opts.hidsz)
+    ------comm
+    local prev_hid_comm_acting = nn.Identity()() 
+    g_modules['prev_hid_comm_acting'] = prev_hid_comm_acting.data.module
+    local prev_cell_comm_acting = nn.Identity()()
+    g_modules['prev_cell_comm_acting'] = prev_cell_comm_acting.data.module
+    local comm_in_embedding_acting = nn.LinearNB(g_opts.nsymbols_monitoring, g_opts.hidsz)(comm_in)
+    local hid_comm_acting, cell_comm_acting = build_lstm(comm_in_embedding_acting, prev_hid_comm_acting, prev_cell_comm_acting, g_opts.hidsz, g_opts.hidsz)
 
-    local mem_state = nn.Identity()()
-    local mem_out = build_model_memnn(hid, mem_state)
-    
-
-    local hid_act = nonlin()(nn.Linear(g_opts.hidsz, g_opts.hidsz)(mem_out))
-    local action = nn.Linear(g_opts.hidsz, g_opts.nactions)(hid_act)
-    local action_prob = nn.LogSoftMax()(action)
-    local hid_bl = nonlin()(nn.Linear(g_opts.hidsz, g_opts.hidsz)(mem_out))
-    local baseline = nn.Linear(g_opts.hidsz, 1)(hid_bl)
+    -----final (not recurrent)
+    local pre_out_acting = nn.JoinTable(2)({mem_out_acting, hid_comm_acting})
+    -----out
+    local hid_act_acting = nonlin()(nn.Linear(g_opts.hidsz, g_opts.hidsz)(pre_out_acting))
+    local action_acting = nn.Linear(g_opts.hidsz, g_opts.nactions)(hid_act_acting)
+    local action_prob_acting = nn.LogSoftMax()(action_acting)
+    local hid_bl_acting = nonlin()(nn.Linear(g_opts.hidsz, g_opts.hidsz)(pre_out_acting))
+    local baseline_acting = nn.Linear(g_opts.hidsz, 1)(hid_bl_acting)
     --END acting--
     
     local model = nn.gModule(
-        {context_monitoring, mem_state_monitoring, mem_state, prev_mem_out, comm_in, prev_hid, prev_cell}, 
-        {action_prob, baseline, mem_out, hid, cell, action_prob_monitoring, baseline_monitoring}
+        {comm_in, --1
+        mem_state_monitoring, --2
+        prev_mem_out_monitoring, -- 3
+        prev_hid_context_monitoring, -- 4
+        prev_cell_context_monitoring, --5
+        prev_hid_comm_monitoring, --6
+        prev_cell_comm_monitoring, --7
+        mem_state_acting, --8
+        prev_mem_out_acting, -- 9
+        prev_hid_context_acting, -- 10
+        prev_cell_context_acting, --11
+        prev_hid_comm_acting, --12
+        prev_cell_comm_acting}, --13
+
+        {action_prob_monitoring, --1
+        action_prob_acting, --2
+        baseline_acting, --3
+        mem_out_monitoring, -- 4
+        hid_context_monitoring,  -- 5
+        cell_context_monitoring, --6
+        hid_comm_monitoring, --7
+        cell_comm_monitoring, --8
+        mem_out_acting, --9
+        hid_context_acting, --10
+        cell_context_acting, --11
+        hid_comm_acting, --12
+        cell_comm_acting} --13
         )
 
     for _, l in pairs(g_shareList) do

@@ -5,6 +5,18 @@
 -- LICENSE file in the root directory of this source tree. An additional grant 
 -- of patent rights can be found in the PATENTS file in the same directory.
 
+function sample_multinomial(p)
+    -- for some reason multinomial fails sometimes
+    local s, sample = pcall(
+        function() 
+            return torch.multinomial(p, 1) 
+        end) 
+    if s == false then
+        sample = torch.multinomial(torch.ones(p:size()),1)
+    end
+    return sample
+end
+
 function tensor_to_words(input, show_prob)
     for i = 1, input:size(1) do
         local line = i .. ':'

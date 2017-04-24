@@ -63,19 +63,18 @@ cmd:option('--nhop', 1, 'the number of hops in MemNN')
 cmd:option('--nagents', 1, 'the number of acting agents')
 cmd:option('--nactions', 6, 'the number of agent actions')
 cmd:option('--max_steps', 30, 'force to end the game after this many steps')
-cmd:option('--exp_id', 1, '')
-cmd:option('--games_config_path', 'lua/mazebase/config/keybox1.lua', 'configuration file for games')
+cmd:option('--exp_id', 7, '')
 -- training parameters
 cmd:option('--optim', 'rmsprop', 'optimization method: rmsprop | sgd')
 cmd:option('--lrate', 5e-4, 'learning rate')
 cmd:option('--max_grad_norm', 0, 'gradient clip value')
 cmd:option('--alpha', 0.03, 'coefficient of baseline term in the cost function')
 cmd:option('--beta', 0.05, '')
-cmd:option('--epochs', 100, 'the number of training epochs')
+cmd:option('--Gumbel_temp', 1.0, '')
+cmd:option('--epochs', 50, 'the number of training epochs')
 cmd:option('--nbatches', 100, 'the number of mini-batches in one epoch')
 cmd:option('--batch_size', 128, 'size of mini-batch (the number of parallel games) in each thread')
 cmd:option('--nworker', 1, 'the number of threads used for training')
-cmd:option('--gpu', 0, '0 | 1')
 -- for rmsprop
 cmd:option('--rmsprop_alpha', 0.97, 'parameter of RMSProp')
 cmd:option('--rmsprop_eps', 1e-6, 'parameter of RMSProp')
@@ -83,21 +82,7 @@ cmd:option('--rmsprop_eps', 1e-6, 'parameter of RMSProp')
 cmd:option('--save', '', 'file name to save the model')
 cmd:option('--load', '', 'file name to load the model')
 g_opts = cmd:parse(arg or {})
-g_opts.games_config_path = 'lua/mazebase/config/keybox'..g_opts.exp_id..'.lua'
-if g_opts.gpu == 1 then
-    require 'cutorch'
-    require 'cunn'
-    cutorch.setDevice(1)
-    print(cutorch.getDeviceProperties(1))
-
-    g_opts.batch_size = g_opts.batch_size * g_opts.nworker
-    g_opts.nworker = 1
-
-    g_opts.dtype = 'torch.CudaTensor'
-else
-    g_opts.dtype = 'torch.FloatTensor'
-
-end
+g_opts.games_config_path = 'lua/mazebase/config/exp'..g_opts.exp_id..'.lua'
 g_mazebase.init_vocab()
 g_mazebase.init_game()
 init_master()
@@ -107,21 +92,6 @@ if g_opts.nworker > 1 then
     g_workers = init_threads()
 end
 
+g_init_model()
 g_logs={}
-for i = 1, 1 do
-    g_log = {}
-    if g_opts.optim == 'rmsprop' then g_rmsprop_state = {} end
-    g_init_model()
-    g_load_model()
-    g_mazebase.init_game()
-
-    train(g_opts.epochs)
-    g_opts.save ='exp'..g_opts.exp_id
-    g_save_model()
-    g_logs[i] = g_log
-end
-g_opts.save ='glogs_exp'..g_opts.exp_id
-g_save_glogs()
-
---g_disp = require('display')
---test()
+train(1)

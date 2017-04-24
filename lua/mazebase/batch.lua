@@ -15,7 +15,7 @@ end
 
 function batch_input(batch, active, t)
     active = active:view(#batch, g_opts.nagents)
-    local input = torch.Tensor(#batch, g_opts.nagents, g_opts.memsize, g_opts.max_attributes):type(g_opts.dtype)
+    local input = torch.Tensor(#batch, g_opts.nagents, g_opts.memsize, g_opts.max_attributes)
     input:fill(g_vocab['nil'])
     for i, g in pairs(batch) do
         for a = 1, g_opts.nagents do
@@ -31,7 +31,7 @@ end
 
 function batch_input_monitoring(batch, active, t)
     active = active:view(#batch, g_opts.nagents)
-    local input = torch.Tensor(#batch, g_opts.nagents, g_opts.memsize, g_opts.max_attributes):type(g_opts.dtype)
+    local input = torch.Tensor(#batch, g_opts.nagents, g_opts.memsize, g_opts.max_attributes)
     input:fill(g_vocab['nil'])
     for i, g in pairs(batch) do
         for a = 1, g_opts.nagents do
@@ -60,7 +60,7 @@ end
 
 function batch_reward(batch, active, is_last)
     active = active:view(#batch, g_opts.nagents)
-    local reward = torch.Tensor(#batch, g_opts.nagents):type(g_opts.dtype):zero()
+    local reward = torch.Tensor(#batch, g_opts.nagents):zero()
     for i, g in pairs(batch) do
         for a = 1, g_opts.nagents do
             g.agent = g.agents[a]
@@ -86,7 +86,7 @@ function batch_update(batch, active)
 end
 
 function batch_active(batch)
-    local active = torch.Tensor(#batch, g_opts.nagents):type(g_opts.dtype):zero()
+    local active = torch.Tensor(#batch, g_opts.nagents):zero()
     for i, g in pairs(batch) do
         if (not g.sv_on) and (not g.qa_on) then
             for a = 1, g_opts.nagents do
@@ -101,7 +101,7 @@ function batch_active(batch)
 end
 
 function batch_success(batch)
-    local success = torch.Tensor(#batch):type(g_opts.dtype):fill(0)
+    local success = torch.Tensor(#batch):fill(0)
     for i, g in pairs(batch) do
         if g:is_success() then
             success[i] = 1
