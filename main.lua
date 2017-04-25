@@ -51,6 +51,7 @@ end
 
 local cmd = torch.CmdLine()
 -- model parameters
+cmd:option('--model', 'A3C', 'A3C | DQN')
 cmd:option('--hidsz', 50, 'the size of the internal state vector')
 cmd:option('--nonlin', 'relu', 'non-linearity type: tanh | relu | none')
 cmd:option('--init_std', 0.2, 'STD of initial weights')
@@ -64,12 +65,12 @@ cmd:option('--max_steps', 30, 'force to end the game after this many steps')
 cmd:option('--exp_id', 15, '')
 -- training parameters
 cmd:option('--optim', 'rmsprop', 'optimization method: rmsprop | sgd')
-cmd:option('--lrate', 2.5e-4, 'learning rate')
+cmd:option('--lrate', 1e-4, 'learning rate')
 cmd:option('--max_grad_norm', 0, 'gradient clip value')
 cmd:option('--alpha', 0.03, 'coefficient of baseline term in the cost function')
 cmd:option('--beta', 0.1, '')
 cmd:option('--Gumbel_temp', 1.0, '')
-cmd:option('--epochs', 50, 'the number of training epochs')
+cmd:option('--epochs', 100, 'the number of training epochs')
 cmd:option('--nbatches', 100, 'the number of mini-batches in one epoch')
 cmd:option('--batch_size', 64, 'size of mini-batch (the number of parallel games) in each thread')
 cmd:option('--nworker', 4, 'the number of threads used for training')

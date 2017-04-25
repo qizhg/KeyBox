@@ -170,7 +170,12 @@ function g_build_model()
     -----out
     local hid_act_monitoring = nonlin()(nn.Linear(g_opts.hidsz, g_opts.hidsz)(hid_final_monitoring))
     local action_monitoring = nn.Linear(g_opts.hidsz, g_opts.nsymbols_monitoring)(hid_act_monitoring)
-    local action_prob_monitoring = nn.LogSoftMax()(action_monitoring)
+    local out_monitoring
+    if g_opts.traing == nil or g_opts.traing ~= 'Continues2' then
+        out_monitoring = action_monitoring
+    else
+        out_monitoring = nn.LogSoftMax()(action_monitoring)
+    end
     --END monitoring--
 
     --acting
@@ -228,7 +233,7 @@ function g_build_model()
         prev_hid_final_acting, --16
         prev_cell_final_acting},--17
         
-        {action_prob_monitoring, --1
+        {out_monitoring, --1
         action_prob_acting, --2
         baseline_acting, --3
         mem_out_monitoring, --4

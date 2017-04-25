@@ -6,7 +6,7 @@
 -- of patent rights can be found in the PATENTS file in the same directory.
 require('optim')
 
-local train_file = 'train_batch/train_batch'..g_opts.model_id..'.lua'
+local train_file = 'train_batch/train_'..g_opts.model..'_'..g_opts.model_id..'.lua'
 paths.dofile(train_file)
 
 function train(N)
