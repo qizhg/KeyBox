@@ -3,5 +3,6 @@ The monitoring agent can observe all attributes but position of every item, whil
 Use continues vectors as communication signals within each step.
 
 The communication signal is oneway from monitoring agent to acting agent, which is the hidden state after MLP encoding of the monitoring agent observations.
+The communication signal is concatenated with the MLP encoding of the acting agent's observations.
 
 100% success rate under effective communication.
