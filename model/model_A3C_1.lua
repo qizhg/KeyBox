@@ -171,7 +171,7 @@ function g_build_model()
     local hid_act_monitoring = nonlin()(nn.Linear(g_opts.hidsz, g_opts.hidsz)(hid_final_monitoring))
     local action_monitoring = nn.Linear(g_opts.hidsz, g_opts.nsymbols_monitoring)(hid_act_monitoring)
     local out_monitoring
-    if g_opts.traing == nil or g_opts.traing ~= 'Continues2' then
+    if g_opts.traing == 'Continues2' then
         out_monitoring = action_monitoring
     else
         out_monitoring = nn.LogSoftMax()(action_monitoring)

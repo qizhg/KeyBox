@@ -149,17 +149,22 @@ function g_build_model()
     local comm_in_embedding_monitoring = nn.LinearNB(g_opts.nsymbols_monitoring, g_opts.hidsz)(comm_in)
 
     -----final
-    local final_lstm_in_monitoring = nn.JoinTable(2)({mem_out_monitoring, comm_in_embedding_monitoring})
+    local final_lstm_in_monitoring = nn.CAddTable()({mem_out_monitoring, comm_in_embedding_monitoring})
     local prev_hid_final_monitoring = nn.Identity()() 
     g_modules['prev_hid_final_monitoring'] = prev_hid_final_monitoring.data.module
     local prev_cell_final_monitoring = nn.Identity()()
     g_modules['prev_cell_final_monitoring'] = prev_cell_final_monitoring.data.module
-    local hid_final_monitoring, cell_final_monitoring = build_lstm(final_lstm_in_monitoring, prev_hid_final_monitoring, prev_cell_final_monitoring, g_opts.hidsz, 2*g_opts.hidsz)
+    local hid_final_monitoring, cell_final_monitoring = build_lstm(final_lstm_in_monitoring, prev_hid_final_monitoring, prev_cell_final_monitoring, g_opts.hidsz, g_opts.hidsz)
 
     -----out
     local hid_act_monitoring = nonlin()(nn.Linear(g_opts.hidsz, g_opts.hidsz)(hid_final_monitoring))
     local action_monitoring = nn.Linear(g_opts.hidsz, g_opts.nsymbols_monitoring)(hid_act_monitoring)
-    local action_prob_monitoring = nn.LogSoftMax()(action_monitoring)
+    local out_monitoring
+    if g_opts.traing == 'Continues2' then
+        out_monitoring = action_monitoring
+    else
+        out_monitoring = nn.LogSoftMax()(action_monitoring)
+    end
     --END monitoring--
 
     --acting
@@ -198,7 +203,7 @@ function g_build_model()
         prev_hid_final_acting, --8
         prev_cell_final_acting}, --9
         
-        {action_prob_monitoring, --1
+        {out_monitoring, --1
         action_prob_acting, --2
         baseline_acting, --3
         hid_final_monitoring, --4 

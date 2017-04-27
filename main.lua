@@ -51,7 +51,9 @@ end
 
 local cmd = torch.CmdLine()
 -- model parameters
-cmd:option('--model', 'A3C', 'A3C | DQN')
+cmd:option('--model', 'A3C', 'A3C | DQN | MLP_A3C')
+cmd:option('--conv_sz', 9, '')
+
 cmd:option('--hidsz', 50, 'the size of the internal state vector')
 cmd:option('--nonlin', 'relu', 'non-linearity type: tanh | relu | none')
 cmd:option('--init_std', 0.2, 'STD of initial weights')
@@ -62,18 +64,18 @@ cmd:option('--nhop', 1, 'the number of hops in MemNN')
 cmd:option('--nagents', 1, 'the number of acting agents')
 cmd:option('--nactions', 6, 'the number of agent actions')
 cmd:option('--max_steps', 30, 'force to end the game after this many steps')
-cmd:option('--exp_id', 15, '')
+cmd:option('--exp_id', 28, '')
 -- training parameters
 cmd:option('--optim', 'rmsprop', 'optimization method: rmsprop | sgd')
-cmd:option('--lrate', 1e-4, 'learning rate')
+cmd:option('--lrate', 1e-3, 'learning rate')
 cmd:option('--max_grad_norm', 0, 'gradient clip value')
 cmd:option('--alpha', 0.03, 'coefficient of baseline term in the cost function')
-cmd:option('--beta', 0.1, '')
+cmd:option('--beta', 0.01, '')
 cmd:option('--Gumbel_temp', 1.0, '')
 cmd:option('--epochs', 100, 'the number of training epochs')
 cmd:option('--nbatches', 100, 'the number of mini-batches in one epoch')
-cmd:option('--batch_size', 64, 'size of mini-batch (the number of parallel games) in each thread')
-cmd:option('--nworker', 4, 'the number of threads used for training')
+cmd:option('--batch_size', 2, 'size of mini-batch (the number of parallel games) in each thread')
+cmd:option('--nworker', 1, 'the number of threads used for training')
 -- for rmsprop
 cmd:option('--rmsprop_alpha', 0.97, 'parameter of RMSProp')
 cmd:option('--rmsprop_eps', 1e-6, 'parameter of RMSProp')
@@ -87,15 +89,17 @@ g_mazebase.init_game()
 init_master()
 print(g_opts)
 
+
 if g_opts.nworker > 1 then
     g_workers = init_threads()
 end
 
 g_logs={}
-for i = 1, 1 do
+for i = 1, 2 do
     g_log = {}
     if g_opts.optim == 'rmsprop' then g_rmsprop_state = {} end
     g_init_model()
+
     g_load_model()
     g_mazebase.init_game()
 

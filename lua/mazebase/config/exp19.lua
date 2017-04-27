@@ -37,7 +37,7 @@ sso.n_colors = sso.n_keyboxpairs
 sso.costs.success_open = -5
 g_opts.visibile_attr = {'type', 'color', 'loc', 'status'}
 g_opts.visibile_attr_monitoring = {'type', 'color', 'id'}
-g_opts.nsymbols_monitoring = 16
+g_opts.nsymbols_monitoring = 4
 
 g_opts.model_id = 1
 g_opts.nhop = 1

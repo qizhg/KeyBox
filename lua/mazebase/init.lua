@@ -39,30 +39,9 @@ function mazebase.init_vocab()
 
     -- general
     vocab_add('nil')
-    vocab_add('empty')
     vocab_add('agent')
-    for i = 1, 5 do
-        vocab_add('agent' .. i)
-    end
-    vocab_add('goal')
-    for i = 1, 10 do
-        vocab_add('goal' .. i)
-        vocab_add('obj' .. i)
-        vocab_add('reward' .. i)
-    end
-    vocab_add('info')
-    vocab_add('block')
-    vocab_add('corner')
-    vocab_add('water')
-    vocab_add('visited')
-    vocab_add('crumb')
-    vocab_add('left')
-    vocab_add('right')
-    vocab_add('top')
-    vocab_add('bottom')
-    vocab_add('if')
-    local mh = 12
-    local mw = 12
+    local mh = 8
+    local mw = 8
     g_opts.MH = mh
     g_opts.MW = mw
     for y = -mh, mh do
@@ -76,8 +55,6 @@ function mazebase.init_vocab()
     -- for KeyBox
     vocab_add('key')
     vocab_add('box')
-    vocab_add('block')
-    vocab_add('water')
     vocab_add('OnGround')
     vocab_add('PickedUp')
     for i = 1, 2 do

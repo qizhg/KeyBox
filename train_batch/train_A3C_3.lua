@@ -56,6 +56,8 @@ function train_batch()
         elseif g_opts.traing == 'Gumbel' then
             Gumbel_noise[t] = torch.rand(#batch * g_opts.nagents, g_opts.nsymbols_monitoring):log():neg():log():neg()
             comm[t] = g_Gumbel:forward({out[1],Gumbel_noise[t]}):clone()
+        elseif g_opts.traing == 'Continues1' or g_opts.traing == 'Continues2' then
+            comm[t] = out[1]:clone()
         else
             error('training method wrong!!!')
         end
@@ -109,6 +111,8 @@ function train_batch()
                 g_Gumbel:forward({out[1],Gumbel_noise[t]})
                 g_Gumbel:backward({out[1],Gumbel_noise[t]}, grad_comm)
                 grad_action_monitoring = g_modules['Gumbel_logp'].gradInput:clone()
+            elseif g_opts.traing == 'Continues1' or g_opts.traing == 'Continues2' then
+                grad_action_monitoring = grad_comm:clone()
             end
 
             

@@ -85,4 +85,17 @@ function g_update_param(x, dx)
     else
         error('wrong optim')
     end
+
+    if g_opts.model == 'MLP_A3C' then
+        local mapwords = g_opts.conv_sz*g_opts.conv_sz*g_opts.nwords
+        local nilword = mapwords + 1
+        if g_modules.atab then g_modules.atab.weight[nilword]:zero() end
+        if g_modules.atab_monitoring then g_modules.atab_monitoring.weight[nilword]:zero() end
+    else -- MemNN
+        local nilword = g_vocab['nil']
+        if g_modules.A_LT then g_modules.A_LT.data.module.weight[nilword]:zero() end
+        if g_modules.B_LT then g_modules.B_LT.data.module.weight[nilword]:zero() end
+        if g_modules.A_LT_monitoring then g_modules.A_LT_monitoring.data.module.weight[nilword]:zero() end
+        if g_modules.B_LT_monitoring then g_modules.B_LT_monitoring.data.module.weight[nilword]:zero() end
+    end
 end

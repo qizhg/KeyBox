@@ -2,6 +2,7 @@ local KeyBox, parent = torch.class('KeyBox', 'MazeBase')
 
 function KeyBox:__init(opts, vocab)
     parent.__init(self, opts, vocab)
+    self.conv_sz = g_opts.conv_sz
 
     self.n_keyboxpairs = opts.n_keyboxpairs
     self.n_colors = opts.n_colors
@@ -157,13 +158,62 @@ function KeyBox:to_sentence_monitoring(sentence)
     local count=0
     local sentence = sentence or torch.Tensor(#self.items, self.max_attributes):fill(self.vocab['nil'])
     for i = 1, #self.items do
-        if not self.items[i].attr._invisible then
+        if self.items[i].attr.type ~= 'agent' then
             count= count + 1
             if count > sentence:size(1) then error('increase memsize!') end
             self:to_sentence_item(self.items[i], sentence[count], visibile_attr)
         end
     end
     return sentence
+end
+
+-- onehot representation for MLP model
+function KeyBox:to_map_onehot(sentence)
+    local visibile_attr = g_opts.visibile_attr
+    local count = 0
+    local c = 0
+    for _, e in pairs(self.items) do
+        if e.attr.type ~='agent' then
+            local d
+            local tofar = false
+            if e.loc then
+                local dy = e.loc.y - self.agent.loc.y + torch.ceil(self.conv_sz/2)
+                local dx = e.loc.x - self.agent.loc.x + torch.ceil(self.conv_sz/2)
+                if dx > self.conv_sz or dy > self.conv_sz or dx < 1 or dy < 1 then
+                    tofar = true
+                end
+                d = (dy - 1) * self.conv_sz + dx - 1
+            else
+                c = c + 1
+                d = self.conv_sz * self.conv_sz + c - 1
+            end
+            if not tofar then
+                local s = e:to_sentence_visible(self.agent.loc.y, self.agent.loc.x, visibile_attr)
+                for i = 1, #s do
+                    count = count + 1
+                    if count > sentence:size(1) then error('increase memsize!') end
+                    sentence[count] = self.vocab[s[i]] + d * self.nwords
+                end
+            end
+        end
+    end
+end
+
+function KeyBox:to_map_onehot_monitoring(sentence)
+    local visibile_attr = g_opts.visibile_attr_monitoring
+    local count = 0
+    local c = 0
+    for _, e in pairs(self.items) do
+        if e.attr.type ~='agent' then
+            c = c + 1
+            local s = e:to_sentence_visible(self.agent.loc.y, self.agent.loc.x, visibile_attr)
+            for i = 1, #s do
+                count = count + 1
+                if count > sentence:size(1) then error('increase memsize!') end
+                sentence[count] = self.vocab[s[i]] + (c-1) * self.nwords
+            end
+        end
+    end
 end
 
 function KeyBox:is_success()

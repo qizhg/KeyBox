@@ -14,6 +14,10 @@ function batch_init(size)
 end
 
 function batch_input(batch, active, t)
+    if g_opts.model == 'MLP_A3C' then
+        return batch_input_mlp(batch, active, t)
+    end
+
     active = active:view(#batch, g_opts.nagents)
     local input = torch.Tensor(#batch, g_opts.nagents, g_opts.memsize, g_opts.max_attributes)
     input:fill(g_vocab['nil'])
@@ -30,6 +34,11 @@ function batch_input(batch, active, t)
 end
 
 function batch_input_monitoring(batch, active, t)
+
+    if g_opts.model == 'MLP_A3C' then
+        return batch_input_mlp_monitoring(batch, active, t)
+    end
+
     active = active:view(#batch, g_opts.nagents)
     local input = torch.Tensor(#batch, g_opts.nagents, g_opts.memsize, g_opts.max_attributes)
     input:fill(g_vocab['nil'])
@@ -43,6 +52,42 @@ function batch_input_monitoring(batch, active, t)
     end
     input:resize(#batch * g_opts.nagents, g_opts.memsize * g_opts.max_attributes)
     return input
+end
+
+function batch_input_mlp(batch, active, t)
+    -- total number of words in dictionary:
+    local mapwords = g_opts.conv_sz*g_opts.conv_sz*g_opts.nwords
+    local nilword = mapwords + 1
+    active = active:view(#batch, g_opts.nagents)
+    local input = torch.Tensor(#batch, g_opts.nagents, g_opts.memsize * g_opts.max_attributes)
+    input:fill(nilword)
+    for i, g in pairs(batch) do
+        for a = 1, g_opts.nagents do
+            g.agent = g.agents[a]
+            if active[i][a] == 1 then
+                g:to_map_onehot(input[i][a])
+            end
+        end
+    end
+    return input:view(#batch * g_opts.nagents, -1)
+end
+
+function batch_input_mlp_monitoring(batch, active, t)
+    -- total number of words in dictionary:
+    local mapwords = g_opts.conv_sz*g_opts.conv_sz*g_opts.nwords
+    local nilword = mapwords + 1
+    active = active:view(#batch, g_opts.nagents)
+    local input = torch.Tensor(#batch, g_opts.nagents, g_opts.memsize * g_opts.max_attributes)
+    input:fill(nilword)
+    for i, g in pairs(batch) do
+        for a = 1, g_opts.nagents do
+            g.agent = g.agents[a]
+            if active[i][a] == 1 then
+                g:to_map_onehot_monitoring(input[i][a])
+            end
+        end
+    end
+    return input:view(#batch * g_opts.nagents, -1)
 end
 
 function batch_act(batch, action, active)

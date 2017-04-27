@@ -17,6 +17,7 @@ function MazeBase:__init(opts, vocab)
     self.vocab = vocab
     self.nwords = 0
     for i,j in pairs(self.vocab) do self.nwords = self.nwords+1  end
+
     self.conv_sz = opts.conv_sz or 19 -- 10 * 2 - 1
     -- overide this in child if no supervision is defined 
     self.has_supervision = true
