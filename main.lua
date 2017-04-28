@@ -54,7 +54,7 @@ local cmd = torch.CmdLine()
 cmd:option('--model', 'A3C', 'A3C | DQN | MLP_A3C')
 cmd:option('--conv_sz', 9, '')
 
-cmd:option('--hidsz', 50, 'the size of the internal state vector')
+cmd:option('--hidsz', 128, 'the size of the internal state vector')
 cmd:option('--nonlin', 'relu', 'non-linearity type: tanh | relu | none')
 cmd:option('--init_std', 0.2, 'STD of initial weights')
 cmd:option('--max_attributes', 6, 'maximum number of attributes of each item')
@@ -73,7 +73,7 @@ cmd:option('--alpha', 0.03, 'coefficient of baseline term in the cost function')
 cmd:option('--beta', 0.01, '')
 cmd:option('--Gumbel_temp', 1.0, '')
 cmd:option('--epochs', 100, 'the number of training epochs')
-cmd:option('--nbatches', 100, 'the number of mini-batches in one epoch')
+cmd:option('--nbatches', 2, 'the number of mini-batches in one epoch')
 cmd:option('--batch_size', 2, 'size of mini-batch (the number of parallel games) in each thread')
 cmd:option('--nworker', 1, 'the number of threads used for training')
 -- for rmsprop
@@ -84,10 +84,9 @@ cmd:option('--save', '', 'file name to save the model')
 cmd:option('--load', '', 'file name to load the model')
 g_opts = cmd:parse(arg or {})
 g_opts.games_config_path = 'lua/mazebase/config/exp'..g_opts.exp_id..'.lua'
-g_mazebase.init_vocab()
 g_mazebase.init_game()
+g_mazebase.init_vocab()
 init_master()
-print(g_opts)
 
 
 if g_opts.nworker > 1 then
@@ -95,18 +94,49 @@ if g_opts.nworker > 1 then
 end
 
 g_logs={}
-for i = 1, 2 do
+for i = 1, 10 do
+    g_mazebase.init_game()
     g_log = {}
     if g_opts.optim == 'rmsprop' then g_rmsprop_state = {} end
     g_init_model()
-
     g_load_model()
-    g_mazebase.init_game()
-
     train(g_opts.epochs)
-    g_opts.save ='exp'..g_opts.exp_id..'.t7'
+    g_opts.save ='exp'..i..'.t7'
     g_save_model()
     g_logs[i] = g_log
 end
 g_opts.save ='glogs_exp'..g_opts.exp_id..'.t7'
 g_save_glogs()
+
+epochs = #g_logs[1]
+num_of_experiments = #g_logs
+x1 = torch.rand(epochs)
+for n = 1, epochs do
+    x1[n]=n
+end
+
+reward = torch.rand(num_of_experiments, epochs)
+success = torch.rand(num_of_experiments, epochs)
+for i = 1, num_of_experiments do
+    for n = 1, epochs do
+        success[i][n] = g_logs[i][n].success
+        reward[i][n] = g_logs[i][n].reward
+    end
+end
+
+gnuplot.pngfigure('success'..'.png')
+gnuplot.plot(
+    {x1,success[1],'with lines ls 1'},
+    {x1,success[2],'with lines ls 1'},
+    {x1,success[3],'with lines ls 1'},
+    {x1,success[4],'with lines ls 1'},
+    {x1,success[5],'with lines ls 1'},
+    {x1,success[6],'with lines ls 1'},
+    {x1,success[7],'with lines ls 1'},
+    {x1,success[8],'with lines ls 1'},
+    {x1,success[9],'with lines ls 1'},
+    {x1,success[10],'with lines ls 1'}
+    )
+gnuplot.xlabel('epochs (1 epoch = 100 rmsprop iterations)')
+gnuplot.ylabel('success')
+gnuplot.plotflush()

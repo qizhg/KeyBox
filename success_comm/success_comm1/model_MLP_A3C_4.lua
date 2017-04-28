@@ -93,35 +93,18 @@ function g_build_model()
 	g_modules = {}
 
     input_monitoring = nn.Identity()()
-	local input2hid_monitoring = mlp_monitoring(input_monitoring)
-	
-	local out_monitoring
-	if g_opts.traing == 'Continues2' then
-        out_monitoring = input2hid_monitoring
-    else
-    	local action_monitoring = nn.Linear(g_opts.hidsz, g_opts.nsymbols_monitoring)(input2hid_monitoring)
-        out_monitoring = nn.LogSoftMax()(action_monitoring)
-    end
-
     input_acting = nn.Identity()()
-    comm_in = nn.Identity()()
-    g_modules['comm_in'] = comm_in.data.module
+	local input2hid_monitoring = mlp_monitoring(input_monitoring)
 	local input2hid_acting = mlp_acting(input_acting)
-	local hid_final_acting
-	if g_opts.traing == 'Continues2' then
-        hid_final_acting = nn.JoinTable(2)({comm_in, input2hid_acting})
-    else
-    	local comm_in2hid = nn.LinearNB(g_opts.nsymbols_monitoring, g_opts.hidsz)(comm_in)
-    	hid_final_acting = nn.JoinTable(2)({comm_in2hid, input2hid_acting})
-    end
-	
-	local hid_act_acting = nonlin()(nn.Linear(2*g_opts.hidsz, g_opts.hidsz)(hid_final_acting))
+
+    local hid_final_acting = nn.JoinTable(2)({input2hid_monitoring, input2hid_acting})
+    
+    local hid_act_acting = nonlin()(nn.Linear(2*g_opts.hidsz, g_opts.hidsz)(hid_final_acting))
     local action_acting = nn.Linear(g_opts.hidsz, g_opts.nactions)(hid_act_acting)
     local action_prob_acting = nn.LogSoftMax()(action_acting)
     local hid_bl_acting = nonlin()(nn.Linear(2*g_opts.hidsz, g_opts.hidsz)(hid_final_acting))
     local baseline_acting = nn.Linear(g_opts.hidsz, 1)(hid_bl_acting)
 
-    local model = nn.gModule({input_monitoring, input_acting, comm_in}, 
-    						 {out_monitoring, action_prob_acting, baseline_acting})
+    local model = nn.gModule({input_monitoring, input_acting}, {action_prob_acting, baseline_acting})
     return model
 end

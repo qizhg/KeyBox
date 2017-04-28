@@ -1,5 +1,6 @@
 
 require'gnuplot'
-file = 'rldl2.t7'
+file = 'rldl1.t7'
 local f = torch.load(file)
 print(#f.paramx)
+print(f.opts)

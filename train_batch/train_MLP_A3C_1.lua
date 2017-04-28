@@ -12,8 +12,17 @@ function train_batch()
     local reward = {}
     local input = {}
     local action = {}
+    local symbol = {}
+    local Gumbel_noise ={}
     local comm = {}
-    comm[0] = torch.Tensor(#batch * g_opts.nagents, g_opts.nsymbols_monitoring):fill(0)
+    local comm_sz
+    if g_opts.traing == 'Continues2' then
+        comm_sz = g_opts.hidsz
+    else
+        
+        comm_sz = g_opts.nsymbols_monitoring
+    end
+    comm[0] = torch.Tensor(#batch * g_opts.nagents, comm_sz):fill(0)
     -- play the games
     for t = 1, g_opts.max_steps do
         active[t] = batch_active(batch)
@@ -26,7 +35,17 @@ function train_batch()
 
         local out = g_model:forward(input[t])
         action[t] = sample_multinomial(torch.exp(out[2]))
-        if g_opts.traing == 'Continues1' or g_opts.traing == 'Continues2' then
+
+        if g_opts.traing == 'RL' then --one-shot RL
+            if t==1 then
+                symbol[t] = sample_multinomial(torch.exp(out[1]))
+            end
+            comm[t] = torch.Tensor(#batch * g_opts.nagents, g_opts.nsymbols_monitoring):fill(0)
+            comm[t]:scatter(2, symbol[1], torch.ones(#batch * g_opts.nagents,1))
+        elseif g_opts.traing == 'Gumbel' then
+            Gumbel_noise[t] = torch.rand(#batch * g_opts.nagents, g_opts.nsymbols_monitoring):log():neg():log():neg()
+            comm[t] = g_Gumbel:forward({out[1],Gumbel_noise[t]}):clone()
+        elseif g_opts.traing == 'Continues1' or g_opts.traing == 'Continues2' then
             comm[t] = out[1]:clone()
         else
             error('comm method wrong!!!')
@@ -45,7 +64,7 @@ function train_batch()
 
     -- do back-propagation
     g_paramdx:zero()
-    local grad_comm = torch.Tensor(#batch * g_opts.nagents, g_opts.nsymbols_monitoring):fill(0)
+    local grad_comm = torch.Tensor(#batch * g_opts.nagents, comm_sz):fill(0)
 
     local stat = {}
     local R = torch.Tensor(g_opts.batch_size * g_opts.nagents):zero()
@@ -64,8 +83,23 @@ function train_batch()
             local grad_baseline = g_bl_loss:backward(baseline, R):mul(g_opts.alpha)
 
             --grad_action_monitoring
-            local grad_action_monitoring = torch.Tensor(#batch * g_opts.nagents, g_opts.nsymbols_monitoring):fill(0)
-            if g_opts.traing == 'Continues1' or g_opts.traing == 'Continues2' then
+            local grad_action_monitoring = torch.Tensor(#batch * g_opts.nagents, comm_sz):fill(0)
+            if g_opts.traing == 'RL' then --one-shot RL
+                if t==1 then 
+                    grad_action_monitoring:scatter(2, symbol[t], baseline - R)
+                    local logp_action_monitoring = out[1]
+                    local entropy_action_monitoring = logp_action_monitoring:clone():add(1)
+                    entropy_action_monitoring:cmul(torch.exp(logp_action_monitoring))
+                    entropy_action_monitoring:mul(g_opts.beta)
+                    entropy_action_monitoring:cmul(active[t]:view(-1,1):expandAs(entropy_action_monitoring):clone())
+                    grad_action_monitoring:add(entropy_action_monitoring)
+                end
+            elseif g_opts.traing == 'Gumbel' then
+                g_Gumbel:forward({out[1],Gumbel_noise[t]})
+                g_Gumbel:backward({out[1],Gumbel_noise[t]}, grad_comm)                
+                grad_action_monitoring = g_modules['Gumbel_logp'].gradInput:clone()
+
+            elseif g_opts.traing == 'Continues1' or g_opts.traing == 'Continues2' then
                 grad_action_monitoring = grad_comm:clone()
             else
                 error('comm method wrong!!!')
@@ -105,12 +139,6 @@ function train_batch()
         stat.reward = (stat.reward or 0) + R[i]:mean()
         stat.success = (stat.success or 0) + success[i]
         stat.count = (stat.count or 0) + 1
-
-
-        local t = torch.type(batch[i])
-        stat['reward_' .. t] = (stat['reward_' .. t] or 0) + R[i]:mean()
-        stat['success_' .. t] = (stat['success_' .. t] or 0) + success[i]
-        stat['count_' .. t] = (stat['count_' .. t] or 0) + 1
     end
     return stat
 end

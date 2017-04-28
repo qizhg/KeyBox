@@ -35,15 +35,26 @@ sso.n_keyboxpairs = 2
 sso.boxstatus = 'all' --all | one
 sso.n_colors = sso.n_keyboxpairs
 sso.costs.success_open = -5
-g_opts.visibile_attr_monitoring = {'type', 'color', 'loc', 'id', 'status'}
-g_opts.visibile_attr = {'type', 'color', 'loc', 'id', 'status'}
-g_opts.nsymbols_monitoring = 16
-
+g_opts.visibile_attr_monitoring = {'type', 'color' , 'id'}
+g_opts.visibile_attr = {'type', 'color', 'status'}
 g_opts.model = 'MLP_A3C'
 g_opts.nlayers = 2
-g_opts.model_id = 4
+g_opts.model_id = 1
 g_opts.nhop = 1
-g_opts.traing = 'Continues2'
+
+local traing = {'RL', 'Gumbel'}
+local nsymbols_monitoring = {4, 16, 32, 50}
+local lr = {1e-3, 5e-4, 2.5e-4}
+local hidsz = {50, 128}
+local beta = {0.01, 0.1}
+local Gumbel_temp = {1.0, 0.5, 1.5}
+
+g_opts.traing = traing[torch.random(1,#traing)]
+g_opts.nsymbols_monitoring = nsymbols_monitoring[torch.random(1,#nsymbols_monitoring)]
+g_opts.lr = lr[torch.random(1,#lr)]
+g_opts.hidsz = hidsz[torch.random(1,#hidsz)]
+g_opts.beta = beta[torch.random(1,#beta)]
+g_opts.Gumbel_temp = Gumbel_temp[torch.random(1,#Gumbel_temp)]
 
 
 
