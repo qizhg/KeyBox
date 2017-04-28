@@ -75,7 +75,7 @@ cmd:option('--Gumbel_temp', 1.0, '')
 cmd:option('--epochs', 100, 'the number of training epochs')
 cmd:option('--nbatches', 2, 'the number of mini-batches in one epoch')
 cmd:option('--batch_size', 2, 'size of mini-batch (the number of parallel games) in each thread')
-cmd:option('--nworker', 1, 'the number of threads used for training')
+cmd:option('--nworker', 2, 'the number of threads used for training')
 -- for rmsprop
 cmd:option('--rmsprop_alpha', 0.97, 'parameter of RMSProp')
 cmd:option('--rmsprop_eps', 1e-6, 'parameter of RMSProp')
@@ -84,18 +84,17 @@ cmd:option('--save', '', 'file name to save the model')
 cmd:option('--load', '', 'file name to load the model')
 g_opts = cmd:parse(arg or {})
 g_opts.games_config_path = 'lua/mazebase/config/exp'..g_opts.exp_id..'.lua'
-g_mazebase.init_game()
-g_mazebase.init_vocab()
-init_master()
-
-
-if g_opts.nworker > 1 then
-    g_workers = init_threads()
-end
-
 g_logs={}
 for i = 1, 10 do
     g_mazebase.init_game()
+    g_mazebase.init_vocab()
+    init_master()
+
+
+    if g_opts.nworker > 1 then
+        g_workers = init_threads()
+    end
+
     g_log = {}
     if g_opts.optim == 'rmsprop' then g_rmsprop_state = {} end
     g_init_model()
