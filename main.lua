@@ -10,6 +10,8 @@ g_mazebase = require('mazebase')
 
 local function init_master()
     require('xlua')
+
+    require'gnuplot'
     paths.dofile('util.lua')
     paths.dofile('model.lua')
     paths.dofile('train.lua')
@@ -72,8 +74,10 @@ cmd:option('--max_grad_norm', 0, 'gradient clip value')
 cmd:option('--alpha', 0.03, 'coefficient of baseline term in the cost function')
 cmd:option('--beta', 0.01, '')
 cmd:option('--Gumbel_temp', 1.0, '')
+cmd:option('--Gumbel_start', 5.0, '')
+cmd:option('--Gumbel_endbatch', 100*75, '')
 cmd:option('--epochs', 100, 'the number of training epochs')
-cmd:option('--nbatches', 2, 'the number of mini-batches in one epoch')
+cmd:option('--nbatches', 100, 'the number of mini-batches in one epoch')
 cmd:option('--batch_size', 2, 'size of mini-batch (the number of parallel games) in each thread')
 cmd:option('--nworker', 2, 'the number of threads used for training')
 -- for rmsprop
@@ -85,16 +89,15 @@ cmd:option('--load', '', 'file name to load the model')
 g_opts = cmd:parse(arg or {})
 g_opts.games_config_path = 'lua/mazebase/config/exp'..g_opts.exp_id..'.lua'
 g_logs={}
-for i = 1, 10 do
+g_mazebase.init_game()
+g_mazebase.init_vocab()
+init_master()
+if g_opts.nworker > 1 then
+    g_workers = init_threads()
+end
+
+for i = 1, 2 do
     g_mazebase.init_game()
-    g_mazebase.init_vocab()
-    init_master()
-
-
-    if g_opts.nworker > 1 then
-        g_workers = init_threads()
-    end
-
     g_log = {}
     if g_opts.optim == 'rmsprop' then g_rmsprop_state = {} end
     g_init_model()
@@ -106,36 +109,3 @@ for i = 1, 10 do
 end
 g_opts.save ='glogs_exp'..g_opts.exp_id..'.t7'
 g_save_glogs()
-
-epochs = #g_logs[1]
-num_of_experiments = #g_logs
-x1 = torch.rand(epochs)
-for n = 1, epochs do
-    x1[n]=n
-end
-
-reward = torch.rand(num_of_experiments, epochs)
-success = torch.rand(num_of_experiments, epochs)
-for i = 1, num_of_experiments do
-    for n = 1, epochs do
-        success[i][n] = g_logs[i][n].success
-        reward[i][n] = g_logs[i][n].reward
-    end
-end
-
-gnuplot.pngfigure('success'..'.png')
-gnuplot.plot(
-    {x1,success[1],'with lines ls 1'},
-    {x1,success[2],'with lines ls 1'},
-    {x1,success[3],'with lines ls 1'},
-    {x1,success[4],'with lines ls 1'},
-    {x1,success[5],'with lines ls 1'},
-    {x1,success[6],'with lines ls 1'},
-    {x1,success[7],'with lines ls 1'},
-    {x1,success[8],'with lines ls 1'},
-    {x1,success[9],'with lines ls 1'},
-    {x1,success[10],'with lines ls 1'}
-    )
-gnuplot.xlabel('epochs (1 epoch = 100 rmsprop iterations)')
-gnuplot.ylabel('success')
-gnuplot.plotflush()

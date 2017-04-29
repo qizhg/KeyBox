@@ -2,7 +2,7 @@ require('nn')
 require('nngraph')
 
 function g_build_Gumbel(temp)
-    local temp = temp or g_opts.Gumbel_temp
+    local temp = temp or 1.0
     local Gumbel_noise = nn.Identity()()
     local logp =  nn.Identity()()
     g_modules['Gumbel_logp'] = logp.data.module

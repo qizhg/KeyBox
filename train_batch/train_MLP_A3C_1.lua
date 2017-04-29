@@ -5,7 +5,7 @@
 -- LICENSE file in the root directory of this source tree. An additional grant 
 -- of patent rights can be found in the PATENTS file in the same directory.
 
-function train_batch()
+function train_batch(num_batch)
     -- start a new episode
     local batch = batch_init(g_opts.batch_size)
     local active = {}
@@ -23,6 +23,12 @@ function train_batch()
         comm_sz = g_opts.nsymbols_monitoring
     end
     comm[0] = torch.Tensor(#batch * g_opts.nagents, comm_sz):fill(0)
+
+    if g_opts.traing == 'Gumbel' then
+        local temp = g_opts.Gumbel_start - num_batch*g_opts.Gumbel_start/g_opts.Gumbel_endbatch
+        temp = math.max(0.1,temp)
+        g_Gumbel = g_build_Gumbel(temp)
+    end
     -- play the games
     for t = 1, g_opts.max_steps do
         active[t] = batch_active(batch)
@@ -174,9 +180,9 @@ function apply_curriculum(batch,success)
     end
 end
 
-function train_batch_thread(opts_orig, paramx_orig)
+function train_batch_thread(opts_orig, paramx_orig, num_batch)
     g_opts = opts_orig
     g_paramx:copy(paramx_orig)
-    local stat = train_batch()
+    local stat = train_batch(num_batch)
     return g_paramdx, stat
 end

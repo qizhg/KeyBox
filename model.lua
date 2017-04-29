@@ -19,5 +19,4 @@ function g_init_model()
         g_paramx:normal(0, g_opts.init_std)
     end
     g_bl_loss = nn.MSECriterion()
-    g_Gumbel = g_build_Gumbel()
 end

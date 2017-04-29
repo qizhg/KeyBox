@@ -12,8 +12,9 @@ paths.dofile(train_file)
 function train(N)
     for n = 1, N do
         local stat = {}
+        local epoch = #g_log + 1
         for k = 1, g_opts.nbatches do
-            batch_num = k
+            local num_batch = (epoch-1)*g_opts.nbatches + k
             xlua.progress(k, g_opts.nbatches)
             if g_opts.nworker > 1 then
                 g_paramdx:zero()
@@ -25,12 +26,12 @@ function train(N)
                                 stat[k] = (stat[k] or 0) + v
                             end
                         end,
-                        g_opts, g_paramx
+                        g_opts, g_paramx, num_batch
                     )
                 end
                 g_workers:synchronize()
             else
-                local s = train_batch()
+                local s = train_batch(num_batch)
                 for k, v in pairs(s) do
                     stat[k] = (stat[k] or 0) + v
                 end
