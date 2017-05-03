@@ -92,19 +92,23 @@ function g_build_model()
 
 	g_modules = {}
 
-    input_monitoring = nn.Identity()()
-    input_acting = nn.Identity()()
-	local input2hid_monitoring = mlp_monitoring(input_monitoring)
+    local comm_in = nn.Identity()()
+    local input_acting = nn.Identity()()
+    local comm = nn.Sequential()
+    comm:add(nn.LookupTable(2, g_opts.hidsz))
+    comm:add(nn.Add(g_opts.hidsz)) -- bias
+    comm:add(nonlin())
+	local comm_in_embeding = comm(comm_in)
 	local input2hid_acting = mlp_acting(input_acting)
 
-    local hid_final_acting = nn.JoinTable(2)({input2hid_monitoring, input2hid_acting})
+    local hid_final_acting = nn.CAddTable()({comm_in_embeding, input2hid_acting})
     
-    local hid_act_acting = nonlin()(nn.Linear(2*g_opts.hidsz, g_opts.hidsz)(hid_final_acting))
+    local hid_act_acting = nonlin()(nn.Linear(g_opts.hidsz, g_opts.hidsz)(hid_final_acting))
     local action_acting = nn.Linear(g_opts.hidsz, g_opts.nactions)(hid_act_acting)
     local action_prob_acting = nn.LogSoftMax()(action_acting)
-    local hid_bl_acting = nonlin()(nn.Linear(2*g_opts.hidsz, g_opts.hidsz)(hid_final_acting))
+    local hid_bl_acting = nonlin()(nn.Linear(g_opts.hidsz, g_opts.hidsz)(hid_final_acting))
     local baseline_acting = nn.Linear(g_opts.hidsz, 1)(hid_bl_acting)
 
-    local model = nn.gModule({input_monitoring, input_acting}, {action_prob_acting, baseline_acting})
+    local model = nn.gModule({comm_in, input_acting}, {action_prob_acting, baseline_acting})
     return model
 end

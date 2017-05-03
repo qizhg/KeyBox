@@ -13,13 +13,17 @@ function train_batch()
     local input = {}
     local action = {}
 
+    local  comm = batch_matching(batch)
+    print(comm)
+    io.read()
+
     -- play the games
     for t = 1, g_opts.max_steps do
         active[t] = batch_active(batch)
         if active[t]:sum() == 0 then break end
 
         input[t] = {}
-        input[t][1] = batch_input_monitoring(batch, active[t], t)
+        input[t][1] = comm:clone()
         input[t][2] = batch_input(batch, active[t], t)
 
         local out = g_model:forward(input[t])

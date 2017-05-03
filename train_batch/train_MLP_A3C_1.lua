@@ -15,13 +15,8 @@ function train_batch(num_batch)
     local symbol = {}
     local Gumbel_noise ={}
     local comm = {}
-    local comm_sz
-    if g_opts.traing == 'Continues2' then
-        comm_sz = g_opts.hidsz
-    else
-        
-        comm_sz = g_opts.nsymbols_monitoring
-    end
+    local comm_sz = g_opts.nsymbols_monitoring
+    
     comm[0] = torch.Tensor(#batch * g_opts.nagents, comm_sz):fill(0)
 
     if g_opts.traing == 'Gumbel' then

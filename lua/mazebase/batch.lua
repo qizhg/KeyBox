@@ -33,6 +33,20 @@ function batch_input(batch, active, t)
     return input
 end
 
+function batch_eGreedy(q, eps)
+    --q (#batch, nactions)
+    local q_value = q:clone()
+    local maxs, indices = torch.max(q_value, 2)
+    local action = indices:clone()
+    for i = 1,  g_opts.batch_size do 
+        if torch.uniform()<eps then 
+            action[i]:random(1,g_opts.nactions)
+        end
+    end
+    return action
+   
+end
+
 function batch_input_monitoring(batch, active, t)
 
     if g_opts.model == 'MLP_A3C' then
@@ -153,6 +167,16 @@ function batch_success(batch)
         end
     end
     return success
+end
+
+function batch_matching(batch)
+    local matching = torch.Tensor(#batch):fill(2)
+    for i, g in pairs(batch) do
+        if g:is_matching()==true then 
+            matching[i] = 1
+        end
+    end
+    return matching
 end
 function batch_act_action_label(batch, active)
     local action_label = torch.LongTensor(#batch):fill(5)

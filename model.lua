@@ -13,10 +13,16 @@ paths.dofile(model_file)
 
 
 function g_init_model()
+    g_model_target = g_build_model()
+    g_paramx_target, g_paramdx_target = g_model_target:getParameters()
+
     g_model = g_build_model()
     g_paramx, g_paramdx = g_model:getParameters()
+
     if g_opts.init_std > 0 then
         g_paramx:normal(0, g_opts.init_std)
     end
+    g_paramx_target:copy(g_paramx)
+    
     g_bl_loss = nn.MSECriterion()
 end

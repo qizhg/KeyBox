@@ -1,9 +1,10 @@
 
 require'gnuplot'
 
-local exp_id=9
-local f = torch.load('glogs_exp'..exp_id)
-g_logs = f.log
+local exp_id=1
+local f = torch.load('exp'..exp_id..'.t7')
+g_logs ={}
+g_logs [1] = f.log
 epochs = #g_logs[1]
 
 num_of_experiments = #g_logs
@@ -22,13 +23,11 @@ for i = 1, num_of_experiments do
 	end
 end
 
-print(reward[1][99])
-print(success[1][99])
 ---------------------------------------------------
 
 gnuplot.pngfigure('reward_exp'..exp_id..'.png')
 gnuplot.plot(
-	{'run 1',x1,reward[1],'with lines ls 1'},
+	{'run 1',x1,reward[1],'with lines ls 1'}
 	--{'run 2',x1,reward[2],'with lines ls 2'},
 	--{'run 3',x1,reward[3],'with lines ls 3'}
 	--{'run 4',x1,reward[4],'with lines ls 4'},
@@ -41,7 +40,7 @@ gnuplot.plotflush()
 
 gnuplot.pngfigure('success_exp'..exp_id..'.png')
 gnuplot.plot(
-	{'run 1',x1,success[1],'with lines ls 1'},
+	{'run 1',x1,success[1],'with lines ls 1'}
 	--{'run 2',x1,success[2],'with lines ls 2'},
 	--{'run 3',x1,success[3],'with lines ls 3'}
 	--{'run 4',x1,success[4],'with lines ls 4'},

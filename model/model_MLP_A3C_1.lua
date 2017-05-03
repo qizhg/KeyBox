@@ -39,16 +39,14 @@ local function mlp_monitoring( input )
     local hidstate
     if g_opts.nlayers > 1 then
         local a = nn.Sequential()
-        local atab = nn.LookupTable(in_dim, g_opts.hidsz)
+        local atab = nn.LookupTable(in_dim, g_opts.nsymbols_monitoring)
         g_modules.atab_monitoring = atab
         a:add(atab)
         a:add(nn.Sum(2))
-        a:add(nn.Add(g_opts.hidsz)) -- bias
+        a:add(nn.Add(g_opts.nsymbols_monitoring)) -- bias
         a:add(nonlin())
-        for l = 3, g_opts.nlayers do
-            a:add(nn.Linear(g_opts.hidsz, g_opts.hidsz))
-            a:add(nonlin())
-        end
+        --a:add(nn.BatchNormalization(g_opts.nsymbols_monitoring))
+
         hidstate = a(input)
     else
         error('wrong nlayers')
@@ -56,7 +54,6 @@ local function mlp_monitoring( input )
 
     return hidstate
 end
-
 
 local function mlp_acting( input )
     local MH = g_opts.conv_sz
@@ -76,10 +73,7 @@ local function mlp_acting( input )
         a:add(nn.Sum(2))
         a:add(nn.Add(g_opts.hidsz)) -- bias
         a:add(nonlin())
-        for l = 3, g_opts.nlayers do
-            a:add(nn.Linear(g_opts.hidsz, g_opts.hidsz))
-            a:add(nonlin())
-        end
+        
         hidstate = a(input)
     else
         error('wrong nlayers')
@@ -110,15 +104,18 @@ function g_build_model()
 	local hid_final_acting
 	if g_opts.traing == 'Continues2' then
         hid_final_acting = nn.JoinTable(2)({comm_in, input2hid_acting})
+        --hid_final_acting = nn.CAddTable()({comm_in, input2hid_acting})
     else
     	local comm_in2hid = nn.LinearNB(g_opts.nsymbols_monitoring, g_opts.hidsz)(comm_in)
     	hid_final_acting = nn.JoinTable(2)({comm_in2hid, input2hid_acting})
+        --hid_final_acting = nn.CAddTable()({comm_in2hid, input2hid_acting})
     end
+    local final_sz  = g_opts.hidsz +  g_opts.nsymbols_monitoring
 	
-	local hid_act_acting = nonlin()(nn.Linear(2*g_opts.hidsz, g_opts.hidsz)(hid_final_acting))
+	local hid_act_acting = nonlin()(nn.Linear(final_sz, g_opts.hidsz)(hid_final_acting))
     local action_acting = nn.Linear(g_opts.hidsz, g_opts.nactions)(hid_act_acting)
     local action_prob_acting = nn.LogSoftMax()(action_acting)
-    local hid_bl_acting = nonlin()(nn.Linear(2*g_opts.hidsz, g_opts.hidsz)(hid_final_acting))
+    local hid_bl_acting = nonlin()(nn.Linear(final_sz, g_opts.hidsz)(hid_final_acting))
     local baseline_acting = nn.Linear(g_opts.hidsz, 1)(hid_bl_acting)
 
     local model = nn.gModule({input_monitoring, input_acting, comm_in}, 

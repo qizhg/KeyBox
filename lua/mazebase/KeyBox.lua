@@ -19,6 +19,7 @@ function KeyBox:__init(opts, vocab)
     self.failure_open = 0
 
     self.finished = false
+
 end
 function KeyBox:add_test()
 end
@@ -205,20 +206,68 @@ function KeyBox:to_map_onehot_monitoring(sentence)
     local c = 0
     for _, e in pairs(self.items) do
         if e.attr.type ~='agent' then
+            local d
+            local tofar = false
+            if e.loc then
+                local dy = e.loc.y - self.agent.loc.y + torch.ceil(self.conv_sz/2)
+                local dx = e.loc.x - self.agent.loc.x + torch.ceil(self.conv_sz/2)
+                if dx > self.conv_sz or dy > self.conv_sz or dx < 1 or dy < 1 then
+                    tofar = true
+                end
+                d = (dy - 1) * self.conv_sz + dx - 1
+            else
+                c = c + 1
+                d = self.conv_sz * self.conv_sz + c - 1
+            end
+            if not tofar then
+                local s = e:to_sentence_visible(self.agent.loc.y, self.agent.loc.x, visibile_attr)
+                for i = 1, #s do
+                    count = count + 1
+                    if count > sentence:size(1) then error('increase memsize!') end
+                    sentence[count] = self.vocab[s[i]] + d * self.nwords
+                end
+            end
+        end
+    end
+    
+    --[[
+    local count = 0
+    local c = 0
+    for _, e in pairs(self.items) do
+        if e.attr.type ~='agent' then
             c = c + 1
             local s = e:to_sentence_visible(self.agent.loc.y, self.agent.loc.x, visibile_attr)
             for i = 1, #s do
                 count = count + 1
                 if count > sentence:size(1) then error('increase memsize!') end
-                sentence[count] = self.vocab[s[i]] + (c-1) * self.nwords
+                sentence[count] = self.vocab[ s[i] ] + (c-1) * self.nwords
             end
         end
     end
+    --]]
 end
 
 function KeyBox:is_success()
     if self.n_goal_boxes == self.success_open_total then
         return true
+    else
+        return false
+    end
+end
+
+function KeyBox:is_matching()
+    local key_color, box_color
+    for _, e in pairs(self.items) do
+        if e.attr.type == 'key' and e.attr.id == 'id1'  then 
+            key_color = e.attr.color
+        elseif e.attr.type == 'box' and e.attr.id == 'id1'  then
+            box_color = e.attr.color
+        else
+            --
+        end
+    end
+    if key_color == box_color then 
+        return true 
     else
         return false
     end

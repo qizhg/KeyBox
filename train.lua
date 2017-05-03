@@ -13,6 +13,11 @@ function train(N)
     for n = 1, N do
         local stat = {}
         local epoch = #g_log + 1
+        local target_period = g_opts.target_period or 1
+        if epoch % target_period == 0 then
+            g_paramx_target:copy(g_paramx)
+        end
+
         for k = 1, g_opts.nbatches do
             local num_batch = (epoch-1)*g_opts.nbatches + k
             xlua.progress(k, g_opts.nbatches)
