@@ -1,14 +1,13 @@
 
 require'gnuplot'
 
-local exp_id=1
-local f = torch.load('exp'..exp_id..'.t7')
+local exp_id=4
+local f = torch.load('exp'..exp_id..'_run1.t7')
 g_logs ={}
 g_logs [1] = f.log
 epochs = #g_logs[1]
 
 num_of_experiments = #g_logs
-print(num_of_experiments)
 x1 = torch.rand(epochs)
 for n = 1, epochs do
 	x1[n]=n

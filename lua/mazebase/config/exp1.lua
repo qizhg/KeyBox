@@ -35,15 +35,15 @@ sso.n_keyboxpairs = 2
 sso.boxstatus = 'all' --all | one
 sso.n_colors = sso.n_keyboxpairs
 sso.costs.success_open = -5
-g_opts.visibile_attr_monitoring = {'color', 'id'}
-g_opts.visibile_attr = {'type', 'color', 'status'}
 g_opts.model = 'MLP_A3C'
 g_opts.nlayers = 2
 g_opts.model_id = 5
+g_opts.visibile_attr_monitoring = {'color', 'id'}
+g_opts.visibile_attr = {'type', 'color', 'status'}
 
-g_opts.traing = 'Continues2'
+g_opts.loc_monitoring = false
+g_opts.oneshot_comm = true
 g_opts.nsymbols_monitoring = 2
-g_opts.lr = 1e-3
 g_opts.hidsz = 128
 
 
