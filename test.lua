@@ -8,7 +8,7 @@
 package.path = package.path .. ';lua/?/init.lua'
 g_mazebase = require('mazebase')
 
-local function init_master()
+ function init_master()
     require('xlua')
 
     require'gnuplot'
@@ -19,17 +19,17 @@ local function init_master()
     torch.setdefaulttensortype('torch.FloatTensor')
 end
 
-local function init_worker()
+ function init_worker()
     require('xlua')
     paths.dofile('util.lua')
     torch.setdefaulttensortype('torch.FloatTensor')
 end
 
-local function init_threads()
+ function init_threads()
     print('starting ' .. g_opts.nworker .. ' workers')
-    local threads = require('threads')
+     threads = require('threads')
     threads.Threads.serialization('threads.sharedserialize')
-    local workers = threads.Threads(g_opts.nworker, init_worker)
+     workers = threads.Threads(g_opts.nworker, init_worker)
     workers:specific(true)
     for w = 1, g_opts.nworker do
         workers:addjob(w,
@@ -52,7 +52,7 @@ local function init_threads()
     return workers
 end
 
-local cmd = torch.CmdLine()
+ cmd = torch.CmdLine()
 -- model parameters
 cmd:option('--model', 'A3C', 'A3C | DQN | MLP_A3C')
 cmd:option('--conv_sz', 9, '')
@@ -92,7 +92,7 @@ cmd:option('--rmsprop_alpha', 0.97, 'parameter of RMSProp')
 cmd:option('--rmsprop_eps', 1e-6, 'parameter of RMSProp')
 --other
 cmd:option('--save', '', 'file name to save the model')
-cmd:option('--load', 'exp1.t7', 'file name to load the model')
+cmd:option('--load', 'exp4_run1.t7', 'file name to load the model')
 g_opts = cmd:parse(arg or {})
 g_opts.games_config_path = 'lua/mazebase/config/exp'..g_opts.exp_id..'.lua'
 g_logs={}
@@ -102,6 +102,7 @@ init_master()
 g_mazebase.init_game()
 g_init_model()
 g_load_model()
+--[[]]
 batch = batch_init(g_opts.batch_size)
 input = {}
 comm = torch.Tensor(#batch * g_opts.nagents, g_opts.nsymbols_monitoring):fill(0)
@@ -116,5 +117,43 @@ csvigo.save({path = "comm"..g_opts.exp_id..".csv", data = torch.totable(comm)})
 matching = batch_matching(batch)
 csvigo.save({path = "matching"..g_opts.exp_id..".csv", data = torch.totable(matching:view(-1,1))})
 
+batch = batch_init(g_opts.batch_size)
+active = {}
+     reward = {}
+     input = {}
+     action = {}
+     symbol = {}
+     Gumbel_noise ={}
+     comm = {}
+     comm_sz = g_opts.nsymbols_monitoring
+    
+    comm[0] = torch.Tensor(#batch * g_opts.nagents, comm_sz):fill(0)
+    active[1] = batch_active(batch)
+     oneshot_comm = batch_input_monitoring(batch, active[1], 1)
 
---PCA on comm 
+    -- play the games
+    for t = 1, g_opts.max_steps do
+        active[t] = batch_active(batch)
+        if active[t]:sum() == 0 then break end
+
+        input[t] = {}
+        if g_opts.oneshot_comm == true then 
+            input[t][1] = oneshot_comm:clone()
+        else
+            input[t][1] = batch_input_monitoring(batch, active[t], t)
+        end
+        input[t][2] = batch_input(batch, active[t], t)
+        input[t][3] = comm[t-1]:clone()
+
+         out = g_model:forward(input[t])
+        action[t] = sample_multinomial(torch.exp(out[2]))
+
+        comm[t] = out[1]:clone()
+        
+        batch_act(batch, action[t]:view(-1), active[t])
+        batch_update(batch, active[t])
+        reward[t] = batch_reward(batch, active[t],t == g_opts.max_steps)
+    end
+     success = batch_success(batch)
+    print(success:sum())
+
