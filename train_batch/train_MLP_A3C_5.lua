@@ -19,7 +19,7 @@ function train_batch(num_batch)
     
     comm[0] = torch.Tensor(#batch * g_opts.nagents, comm_sz):fill(0)
     active[1] = batch_active(batch)
-    local input_monitoring = batch_input_monitoring(batch, active[1], 1)
+    local oneshot_comm = batch_input_monitoring(batch, active[1], 1)
 
     -- play the games
     for t = 1, g_opts.max_steps do
@@ -27,27 +27,18 @@ function train_batch(num_batch)
         if active[t]:sum() == 0 then break end
 
         input[t] = {}
-        input[t][1] = input_monitoring:clone()
+        if g_opts.oneshot_comm == true then 
+            input[t][1] = oneshot_comm:clone()
+        else
+            input[t][1] = batch_input_monitoring(batch, active[t], t)
+        end
         input[t][2] = batch_input(batch, active[t], t)
         input[t][3] = comm[t-1]:clone()
 
         local out = g_model:forward(input[t])
         action[t] = sample_multinomial(torch.exp(out[2]))
 
-        if g_opts.traing == 'RL' then --one-shot RL
-            if t==1 then
-                symbol[t] = sample_multinomial(torch.exp(out[1]))
-            end
-            comm[t] = torch.Tensor(#batch * g_opts.nagents, g_opts.nsymbols_monitoring):fill(0)
-            comm[t]:scatter(2, symbol[1], torch.ones(#batch * g_opts.nagents,1))
-        elseif g_opts.traing == 'Gumbel' then
-            Gumbel_noise[t] = torch.rand(#batch * g_opts.nagents, g_opts.nsymbols_monitoring):log():neg():log():neg()
-            comm[t] = g_Gumbel:forward({out[1],Gumbel_noise[t]}):clone()
-        elseif g_opts.traing == 'Continues1' or g_opts.traing == 'Continues2' then
-            comm[t] = out[1]:clone()
-        else
-            error('comm method wrong!!!')
-        end
+        comm[t] = out[1]:clone()
         
         batch_act(batch, action[t]:view(-1), active[t])
         batch_update(batch, active[t])
@@ -82,26 +73,7 @@ function train_batch(num_batch)
 
             --grad_action_monitoring
             local grad_action_monitoring = torch.Tensor(#batch * g_opts.nagents, comm_sz):fill(0)
-            if g_opts.traing == 'RL' then --one-shot RL
-                if t==1 then 
-                    grad_action_monitoring:scatter(2, symbol[t], baseline - R)
-                    local logp_action_monitoring = out[1]
-                    local entropy_action_monitoring = logp_action_monitoring:clone():add(1)
-                    entropy_action_monitoring:cmul(torch.exp(logp_action_monitoring))
-                    entropy_action_monitoring:mul(g_opts.beta)
-                    entropy_action_monitoring:cmul(active[t]:view(-1,1):expandAs(entropy_action_monitoring):clone())
-                    grad_action_monitoring:add(entropy_action_monitoring)
-                end
-            elseif g_opts.traing == 'Gumbel' then
-                g_Gumbel:forward({out[1],Gumbel_noise[t]})
-                g_Gumbel:backward({out[1],Gumbel_noise[t]}, grad_comm)                
-                grad_action_monitoring = g_modules['Gumbel_logp'].gradInput:clone()
-
-            elseif g_opts.traing == 'Continues1' or g_opts.traing == 'Continues2' then
-                grad_action_monitoring = grad_comm:clone()
-            else
-                error('comm method wrong!!!')
-            end
+            grad_action_monitoring = grad_comm:clone()
             
             --grad_action_acting
             local grad_action_acting = torch.Tensor(#batch * g_opts.nagents, g_opts.nactions):fill(0)
