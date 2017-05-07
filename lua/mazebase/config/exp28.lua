@@ -45,7 +45,7 @@ g_opts.nhop = 1
 g_opts.traing = 'Continues2'
 g_opts.nsymbols_monitoring = 10
 g_opts.lr = 5e-4
-g_opts.hidsz = 50
+g_opts.hidsz = 128
 
 
 

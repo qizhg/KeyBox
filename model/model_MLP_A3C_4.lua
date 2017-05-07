@@ -101,7 +101,7 @@ function g_build_model()
 	local comm_in_embeding = comm(comm_in)
 	local input2hid_acting = mlp_acting(input_acting)
 
-    local hid_final_acting = nn.CAddTable()({comm_in_embeding, input2hid_acting})
+    local hid_final_acting = nonlin()(nn.CMulTable()({comm_in_embeding, input2hid_acting}))
     
     local hid_act_acting = nonlin()(nn.Linear(g_opts.hidsz, g_opts.hidsz)(hid_final_acting))
     local action_acting = nn.Linear(g_opts.hidsz, g_opts.nactions)(hid_act_acting)

@@ -202,6 +202,10 @@ end
 
 function KeyBox:to_map_onehot_monitoring(sentence)
     local visibile_attr = g_opts.visibile_attr_monitoring
+
+
+    --[[
+    
     local count = 0
     local c = 0
     for _, e in pairs(self.items) do
@@ -224,13 +228,16 @@ function KeyBox:to_map_onehot_monitoring(sentence)
                 for i = 1, #s do
                     count = count + 1
                     if count > sentence:size(1) then error('increase memsize!') end
-                    sentence[count] = self.vocab[s[i]] + d * self.nwords
+                    sentence[count] = self.vocab[s[i] ] + d * self.nwords
                 end
             end
         end
     end
+    --]]
     
-    --[[
+    
+    
+    
     local count = 0
     local c = 0
     for _, e in pairs(self.items) do
@@ -244,7 +251,9 @@ function KeyBox:to_map_onehot_monitoring(sentence)
             end
         end
     end
-    --]]
+    
+    
+    
 end
 
 function KeyBox:is_success()

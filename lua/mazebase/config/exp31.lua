@@ -45,7 +45,7 @@ g_opts.nhop = 1
 g_opts.traing = 'Gumbel'
 g_opts.nsymbols_monitoring = 4
 g_opts.lr = 1e-3
-g_opts.hidsz = 20
+g_opts.hidsz = 128
 
 
 

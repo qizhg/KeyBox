@@ -18,6 +18,8 @@ function train_batch(num_batch)
     local comm_sz = g_opts.nsymbols_monitoring
     
     comm[0] = torch.Tensor(#batch * g_opts.nagents, comm_sz):fill(0)
+    active[1] = batch_active(batch)
+    local input_monitoring = batch_input_monitoring(batch, active[1], 1)
 
     if g_opts.traing == 'Gumbel' then
         local temp = g_opts.Gumbel_start - num_batch*g_opts.Gumbel_start/g_opts.Gumbel_endbatch
@@ -30,7 +32,7 @@ function train_batch(num_batch)
         if active[t]:sum() == 0 then break end
 
         input[t] = {}
-        input[t][1] = batch_input_monitoring(batch, active[t], t)
+        input[t][1] = input_monitoring:clone()
         input[t][2] = batch_input(batch, active[t], t)
         input[t][3] = comm[t-1]:clone()
 

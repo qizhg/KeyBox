@@ -14,8 +14,6 @@ function train_batch()
     local action = {}
 
     local  comm = batch_matching(batch)
-    print(comm)
-    io.read()
 
     -- play the games
     for t = 1, g_opts.max_steps do
