@@ -91,7 +91,7 @@ function g_build_model()
     local logp = nn.LogSoftMax()(input_embeding)
     local Gumbel_noise = nn.Identity()()
 
-    local temp = 1.0
+    local temp = 4.0
     local Gumbel_trick = nn.CAddTable()({Gumbel_noise, logp})
     local Gumbel_trick_temp = nn.MulConstant(1.0/temp)(Gumbel_trick)
     local Gumbel_SoftMax = nn.SoftMax()(Gumbel_trick_temp)
