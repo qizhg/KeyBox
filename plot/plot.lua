@@ -1,8 +1,8 @@
 
 require'gnuplot'
 
-local exp_id=4
-local f = torch.load('exp'..exp_id..'_run1.t7')
+local exp_id=3
+local f = torch.load('exp'..exp_id..'_run3.t7')
 g_logs ={}
 g_logs [1] = f.log
 epochs = #g_logs[1]
