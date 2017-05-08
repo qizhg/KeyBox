@@ -4,4 +4,4 @@ export OMP_NUM_THREADS=4
 th main.lua \
 --batch_size 64 \
 --nworker 4 \
---exp_id 32
+--exp_id 7
