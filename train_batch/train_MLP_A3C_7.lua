@@ -22,7 +22,6 @@ function train_batch(num_batch)
     local oneshot_comm = batch_input_monitoring(batch, active[1], 1)
 
     -- play the games
-    local g_Gumbel = g_build_Gumbel()
     for t = 1, g_opts.max_steps do
         active[t] = batch_active(batch)
         if active[t]:sum() == 0 then break end
@@ -35,13 +34,12 @@ function train_batch(num_batch)
         end
         input[t][2] = batch_input(batch, active[t], t)
         input[t][3] = comm[t-1]:clone()
+        input[t][4] = torch.rand(#batch * g_opts.nagents, g_opts.nsymbols_monitoring):log():neg():log():neg()
 
         local out = g_model:forward(input[t])
         action[t] = sample_multinomial(torch.exp(out[2]))
-
-        --Gumbel comm
-        Gumbel_noise[t] = torch.rand(#batch * g_opts.nagents, g_opts.nsymbols_monitoring):log():neg():log():neg()
-        comm[t] = g_Gumbel:forward({out[1],Gumbel_noise[t]}):clone()
+        
+        comm[t] = out[1]:clone()
         
         batch_act(batch, action[t]:view(-1), active[t])
         batch_update(batch, active[t])
@@ -76,9 +74,7 @@ function train_batch(num_batch)
 
             --grad_action_monitoring
             local grad_action_monitoring = torch.Tensor(#batch * g_opts.nagents, comm_sz):fill(0)
-            g_Gumbel:forward({out[1],Gumbel_noise[t]})
-            g_Gumbel:backward({out[1],Gumbel_noise[t]}, grad_comm)
-            grad_action_monitoring = g_modules['Gumbel_logp'].gradInput:clone()
+            grad_action_monitoring = grad_comm:clone()
             
             --grad_action_acting
             local grad_action_acting = torch.Tensor(#batch * g_opts.nagents, g_opts.nactions):fill(0)

@@ -67,7 +67,7 @@ cmd:option('--nhop', 1, 'the number of hops in MemNN')
 cmd:option('--nagents', 1, 'the number of acting agents')
 cmd:option('--nactions', 6, 'the number of agent actions')
 cmd:option('--max_steps', 30, 'force to end the game after this many steps')
-cmd:option('--exp_id', 6, '')
+cmd:option('--exp_id', 8, '')
 -- training parameters
 cmd:option('--optim', 'rmsprop', 'optimization method: rmsprop | sgd')
 cmd:option('--lrate', 1e-3, 'learning rate')
@@ -92,7 +92,7 @@ cmd:option('--rmsprop_alpha', 0.97, 'parameter of RMSProp')
 cmd:option('--rmsprop_eps', 1e-6, 'parameter of RMSProp')
 --other
 cmd:option('--save', '', 'file name to save the model')
-cmd:option('--load', 'exp6_run1.t7', 'file name to load the model')
+cmd:option('--load', 'exp1.t7', 'file name to load the model')
 g_opts = cmd:parse(arg or {})
 g_opts.games_config_path = 'lua/mazebase/config/exp'..g_opts.exp_id..'.lua'
 g_logs={}
@@ -102,7 +102,7 @@ init_master()
 g_mazebase.init_game()
 g_init_model()
 g_load_model()
---[[]]
+--[[
 batch = batch_init(g_opts.batch_size)
 input = {}
 comm = torch.Tensor(#batch * g_opts.nagents, g_opts.nsymbols_monitoring):fill(0)
@@ -156,4 +156,13 @@ active = {}
     end
      success = batch_success(batch)
     print(success:sum())
+--]]
+
+
+local csv = csvigo.load({path = "./comm1.csv", verbose = false, mode = "raw"})
+local input = torch.Tensor(csv)
+local Gumbel_noise = torch.rand(input:size(1), input:size(2)):log():neg():log():neg()
+local out = g_model:forward({input, Gumbel_noise})
+
+csvigo.save({path = "symbol1"..".csv", data = torch.totable(out[2])})
 

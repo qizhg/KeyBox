@@ -86,39 +86,19 @@ function g_build_model()
 
 	g_modules = {}
 
-    input_monitoring = nn.Identity()()
-	local input2hid_monitoring = mlp_monitoring(input_monitoring)
-    local comm_encoder = nn.Sequential()
-    comm_encoder:add(nn.Linear(g_opts.hidsz, g_opts.nsymbols_monitoring))
-    --comm_encoder:add(nonlin())
-    comm_encoder:add(nn.LogSoftMax())
-	
-	local symbol_logp = comm_encoder(input2hid_monitoring)
+    local input = nn.Identity()()
+    local input_embeding = nonlin()(nn.Linear(g_opts.nsymbols_monitoring, g_opts.nsymbols_monitoring)(input))
+    local logp = nn.LogSoftMax()(input_embeding)
     local Gumbel_noise = nn.Identity()()
+
     local temp = 1.0
-    local Gumbel_trick = nn.CAddTable()({Gumbel_noise, symbol_logp})
+    local Gumbel_trick = nn.CAddTable()({Gumbel_noise, logp})
     local Gumbel_trick_temp = nn.MulConstant(1.0/temp)(Gumbel_trick)
     local Gumbel_SoftMax = nn.SoftMax()(Gumbel_trick_temp)
-    local out_monitoring=Gumbel_SoftMax
 
-    input_acting = nn.Identity()()
-    comm_in = nn.Identity()()
-    g_modules['comm_in'] = comm_in.data.module
-	local input2hid_acting = mlp_acting(input_acting)
-    local comm_decoder = nn.Sequential()
-    comm_decoder:add(nn.Linear(g_opts.nsymbols_monitoring, g_opts.hidsz))
-    --comm_decoder:add(nonlin())
-    local comm_in_embeding = comm_decoder(comm_in)
+    local output = nn.Linear(g_opts.nsymbols_monitoring, g_opts.nsymbols_monitoring)(Gumbel_SoftMax)
 
-    local hid_final_acting = nn.CAddTable()({comm_in_embeding, input2hid_acting})
-	
-	local hid_act_acting = nonlin()(nn.Linear(g_opts.hidsz, g_opts.hidsz)(hid_final_acting))
-    local action_acting = nn.Linear(g_opts.hidsz, g_opts.nactions)(hid_act_acting)
-    local action_prob_acting = nn.LogSoftMax()(action_acting)
-    local hid_bl_acting = nonlin()(nn.Linear(g_opts.hidsz, g_opts.hidsz)(hid_final_acting))
-    local baseline_acting = nn.Linear(g_opts.hidsz, 1)(hid_bl_acting)
-
-    local model = nn.gModule({input_monitoring, input_acting, comm_in, Gumbel_noise}, 
-    						 {out_monitoring, action_prob_acting, baseline_acting})
+    local model = nn.gModule({input, Gumbel_noise}, 
+    						 {output, Gumbel_SoftMax})
     return model
 end

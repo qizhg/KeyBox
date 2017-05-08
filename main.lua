@@ -12,6 +12,7 @@ local function init_master()
     require('xlua')
 
     require'gnuplot'
+    require'csvigo'
     paths.dofile('util.lua')
     paths.dofile('model.lua')
     paths.dofile('train.lua')
