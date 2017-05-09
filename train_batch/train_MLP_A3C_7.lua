@@ -16,6 +16,8 @@ function train_batch(num_batch)
     local Gumbel_noise ={}
     local comm = {}
     local comm_sz = g_opts.nsymbols_monitoring
+    local matching_label = batch_matching(batch)
+
     
     comm[0] = torch.Tensor(#batch * g_opts.nagents, comm_sz):fill(0)
     active[1] = batch_active(batch)
@@ -85,17 +87,25 @@ function train_batch(num_batch)
             entropy_grad_action_acting:mul(g_opts.beta)
             entropy_grad_action_acting:cmul(active[t]:view(-1,1):expandAs(entropy_grad_action_acting):clone())
             grad_action_acting:add(entropy_grad_action_acting)
+
+            --grad_matching
+            local criterion = nn.ClassNLLCriterion()
+            local err = criterion:forward(out[4], matching_label)
+            local grad_matching = criterion:backward(out[4], matching_label)
+
             
             --normalize with div(#batch_size)
             grad_action_monitoring:div(g_opts.batch_size)
             grad_baseline:div(g_opts.batch_size)
             grad_action_acting:div(g_opts.batch_size)
+            grad_matching:div(g_opts.batch_size)
 
             --backward with grad recurrent
             local grad_table = {}
             grad_table[1] = grad_action_monitoring
             grad_table[2] = grad_action_acting
             grad_table[3] = grad_baseline
+            grad_table[4] = grad_matching
             
             g_model:backward(input[t], grad_table)
             

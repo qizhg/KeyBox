@@ -117,8 +117,10 @@ function g_build_model()
     local action_prob_acting = nn.LogSoftMax()(action_acting)
     local hid_bl_acting = nonlin()(nn.Linear(g_opts.hidsz, g_opts.hidsz)(hid_final_acting))
     local baseline_acting = nn.Linear(g_opts.hidsz, 1)(hid_bl_acting)
+    local hid_matching_acting = nonlin()(nn.Linear(g_opts.hidsz, g_opts.hidsz)(hid_final_acting))
+    local matching_acting = nonlin()(nn.Linear(g_opts.hidsz, 2)(hid_matching_acting))
 
     local model = nn.gModule({input_monitoring, input_acting, comm_in, Gumbel_noise}, 
-    						 {out_monitoring, action_prob_acting, baseline_acting})
+    						 {out_monitoring, action_prob_acting, baseline_acting, matching_acting})
     return model
 end
