@@ -95,7 +95,8 @@ function g_build_model()
 	
 	local symbol_logp = comm_encoder(input2hid_monitoring)
     local Gumbel_noise = nn.Identity()()
-    local temp = 1.0
+    local temp = g_opts.Gumbel_temp or 1.0
+    print(temp)
     local Gumbel_trick = nn.CAddTable()({Gumbel_noise, symbol_logp})
     local Gumbel_trick_temp = nn.MulConstant(1.0/temp)(Gumbel_trick)
     local Gumbel_SoftMax = nn.SoftMax()(Gumbel_trick_temp)
