@@ -43,7 +43,7 @@ g_opts.visibile_attr = {'type', 'color', 'status'}
 
 g_opts.loc_monitoring = false
 g_opts.oneshot_comm = true
-g_opts.nsymbols_monitoring = 32
+g_opts.nsymbols_monitoring = 2
 g_opts.hidsz = 128
 
 
