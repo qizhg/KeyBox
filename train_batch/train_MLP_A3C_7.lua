@@ -22,6 +22,7 @@ function train_batch(num_batch)
     comm[0] = torch.Tensor(#batch * g_opts.nagents, comm_sz):fill(0)
     active[1] = batch_active(batch)
     local oneshot_comm = batch_input_monitoring(batch, active[1], 1)
+    local oneshot_Gumbel = torch.rand(#batch * g_opts.nagents, g_opts.nsymbols_monitoring):log():neg():log():neg()
 
     -- play the games
     for t = 1, g_opts.max_steps do
@@ -31,12 +32,14 @@ function train_batch(num_batch)
         input[t] = {}
         if g_opts.oneshot_comm == true then 
             input[t][1] = oneshot_comm:clone()
+            input[t][4] = oneshot_Gumbel:clone()
         else
             input[t][1] = batch_input_monitoring(batch, active[t], t)
+            input[t][4] = torch.rand(#batch * g_opts.nagents, g_opts.nsymbols_monitoring):log():neg():log():neg()
         end
         input[t][2] = batch_input(batch, active[t], t)
         input[t][3] = comm[t-1]:clone()
-        input[t][4] = torch.rand(#batch * g_opts.nagents, g_opts.nsymbols_monitoring):log():neg():log():neg()
+        
 
         local out = g_model:forward(input[t])
         action[t] = sample_multinomial(torch.exp(out[2]))
