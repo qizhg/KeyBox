@@ -85,8 +85,8 @@ function format_stat(stat)
     end
     str = str .. '\n'
     str = str .. 'bl_cost: ' .. string.format("%2.4g",stat['bl_cost']) .. ' '
-    --str = str .. 'reward: ' .. string.format("%2.4g",stat['reward']) .. ' '
-    --str = str .. 'success: ' .. string.format("%2.4g",stat['success']) .. ' '
+    str = str .. 'reward: ' .. string.format("%2.4g",stat['reward']) .. ' '
+    str = str .. 'success: ' .. string.format("%2.4g",stat['success']) .. ' '
     str = str .. 'epoch: ' .. stat['epoch']
     return str
 end
