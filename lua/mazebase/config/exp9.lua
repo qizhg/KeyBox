@@ -3,8 +3,8 @@ g_opts.multigames = {}
 -------------------
 --some shared RangeOpts
 --current min, current max, min max, max max, increment
-local mapH = torch.Tensor{4,4,5,10,1}
-local mapW = torch.Tensor{4,4,5,10,1}
+local mapH = torch.Tensor{3,3,5,10,1}
+local mapW = torch.Tensor{3,3,5,10,1}
 local blockspct = torch.Tensor{.0,.0, 0,.2,.01}
 local waterpct = torch.Tensor{.0,.0, 0,.2,.01}
 
@@ -45,8 +45,8 @@ g_opts.visibile_attr = {'type', 'color', 'status'}
 g_opts.loc_monitoring = true
 g_opts.oneshot_comm = true
 g_opts.nsymbols_monitoring = 2
-g_opts.hidsz = 128
-g_opts.Gumbel_temp=1.0
+g_opts.hidsz = 256
+g_opts.Gumbel_temp=2.5
 
 
 
