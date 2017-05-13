@@ -40,7 +40,7 @@ g_opts.model = 'MemNN_acting'
 g_opts.model_id = 1 --single acting agent with dummy context vectors
 g_opts.memsize = 10
 g_opts.nhop = 1
-g_opts.visibile_attr = {'type', 'color', 'status', 'id'}
+g_opts.visibile_attr = {'type', 'color', 'status', 'id', 'loc'}
 g_opts.hidsz = 50
 
 g_opts.MH = mapH[1]

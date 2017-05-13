@@ -36,11 +36,14 @@ sso.boxstatus = 'all' --all | one
 sso.n_colors = sso.n_keyboxpairs
 sso.costs.success_open = -5
 
-g_opts.model = 'MemNN_acting'
-g_opts.model_id = 3 --single acting agent with matching label as context vectors
+g_opts.model = 'MemNN'
+g_opts.model_id = 1 --continous comm
 g_opts.memsize = 10
 g_opts.nhop = 1
 g_opts.visibile_attr = {'type', 'color', 'status', 'loc'}
+g_opts.visibile_attr_monitoring = {'color', 'id'}
+g_opts.oneshot_comm = true
+g_opts.nsymbols_monitoring = 2
 g_opts.hidsz = 50
 
 g_opts.MH = mapH[1]

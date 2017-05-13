@@ -125,7 +125,6 @@ local function build_memory_monitoring(input, context)
     end
     return hid
 end
-----END monitoring----
 
 
 local function build_model_memnn_monitoring(input, context)
