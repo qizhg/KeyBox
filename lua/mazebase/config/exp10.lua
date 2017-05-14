@@ -46,7 +46,7 @@ g_opts.loc_monitoring = true
 g_opts.oneshot_comm = true
 g_opts.nsymbols_monitoring = 2
 g_opts.hidsz = 256
-g_opts.Gumbel_temp=2.5
+g_opts.Gumbel_temp=1.0
 
 
 

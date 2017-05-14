@@ -84,9 +84,9 @@ cmd:option('--eps_start', 1.0, '')
 cmd:option('--eps_endbatch', 100*20, '')
 
 cmd:option('--epochs', 100, 'the number of training epochs')
-cmd:option('--nbatches', 100, 'the number of mini-batches in one epoch')
-cmd:option('--batch_size', 16, 'size of mini-batch (the number of parallel games) in each thread')
-cmd:option('--nworker', 1, 'the number of threads used for training')
+cmd:option('--nbatches', 10, 'the number of mini-batches in one epoch')
+cmd:option('--batch_size', 4, 'size of mini-batch (the number of parallel games) in each thread')
+cmd:option('--nworker', 2, 'the number of threads used for training')
 -- for rmsprop
 cmd:option('--rmsprop_alpha', 0.97, 'parameter of RMSProp')
 cmd:option('--rmsprop_eps', 1e-6, 'parameter of RMSProp')

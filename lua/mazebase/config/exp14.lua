@@ -35,22 +35,30 @@ sso.n_keyboxpairs = 2
 sso.boxstatus = 'all' --all | one
 sso.n_colors = sso.n_keyboxpairs
 sso.costs.success_open = -5
-
-g_opts.model = 'MemNN'
-g_opts.model_id = 1 --continous comm
-g_opts.memsize = 10
-g_opts.nhop = 1
-g_opts.visibile_attr = {'type', 'color', 'status', 'loc'}
+g_opts.model = 'MLP_A3C'
+g_opts.nlayers = 2
+g_opts.nlayers_monitoring = 2
+g_opts.model_id = 9 --ST-Gumbel out_monitoring with matching supervision
 g_opts.visibile_attr_monitoring = {'color', 'id'}
+g_opts.visibile_attr = {'type', 'color', 'status'}
+
+g_opts.loc_monitoring = true
 g_opts.oneshot_comm = true
 g_opts.nsymbols_monitoring = 2
-g_opts.hidsz = 50
+g_opts.hidsz = 256
+g_opts.Gumbel_temp=1.0
+
+
 
 g_opts.MH = mapH[1]
 g_opts.MW = mapW[1]
 g_opts.n_keyboxpairs = sso.n_keyboxpairs
 g_opts.n_colors = sso.n_colors
 g_opts.boxstatus = sso.boxstatus
+
+
+
+
 
 -- KeyBox:
 local KeyBoxRangeOpts = {}
