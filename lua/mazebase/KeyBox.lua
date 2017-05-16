@@ -138,6 +138,13 @@ function KeyBox:to_sentence_item(e, sentence, visibile_attr)
         sentence[i] = self.vocab[s[i]]
     end
 end
+function KeyBox:to_sentence_item_monitoring(e, sentence, visibile_attr)
+    local s = e:to_sentence_visible(0, 0, visibile_attr)
+    for i = 1, #s do
+        sentence[i] = self.vocab[s[i]]
+    end
+end
+
 
 
 function KeyBox:to_sentence(sentence)
@@ -162,7 +169,7 @@ function KeyBox:to_sentence_monitoring(sentence)
         if self.items[i].attr.type ~= 'agent' then
             count= count + 1
             if count > sentence:size(1) then error('increase memsize!') end
-            self:to_sentence_item(self.items[i], sentence[count], visibile_attr)
+            self:to_sentence_item_monitoring(self.items[i], sentence[count], visibile_attr)
         end
     end
     return sentence

@@ -42,16 +42,13 @@ function train_batch(num_batch)
         
 
         local out = g_model:forward(input[t])
-        action[t] = sample_multinomial(torch.exp(out[2]))
+        local pred = sample_multinomial(torch.exp(out[4]))
+        reward[t] = pred:float():eq(matching_label:view(-1,1)):float():clone()
         
         --ST-Gumbel
         local temp, symbol = torch.max(out[1], 2) 
         comm[t] = torch.Tensor(#batch * g_opts.nagents, g_opts.nsymbols_monitoring):fill(0)
         comm[t]:scatter(2, symbol, 1)
-        
-        batch_act(batch, action[t]:view(-1), active[t])
-        batch_update(batch, active[t])
-        reward[t] = batch_reward(batch, active[t],t == g_opts.max_steps)
     end
     local success = batch_success(batch)
 
@@ -73,38 +70,19 @@ function train_batch(num_batch)
             R:add(reward[t])
             R:cmul(active[t])
 
-            --grad_baseline
-            local baseline = out[3]
-            baseline:cmul(active[t])
-            stat.bl_cost = (stat.bl_cost or 0) + g_bl_loss:forward(baseline, R)
-            stat.bl_count = (stat.bl_count or 0) + active[t]:sum()
-            local grad_baseline = g_bl_loss:backward(baseline, R):mul(g_opts.alpha)
+            local grad_baseline = out[3]:clone():zero()
+            local grad_action_acting = out[2]:clone():zero()
 
             --grad_action_monitoring
             local grad_action_monitoring = torch.Tensor(#batch * g_opts.nagents, comm_sz):fill(0)
             grad_action_monitoring = grad_comm:clone()
-            
-            --grad_action_acting
-            local grad_action_acting = torch.Tensor(#batch * g_opts.nagents, g_opts.nactions):fill(0)
-            grad_action_acting:scatter(2, action[t], baseline - R)
-            local logp = out[2]
-            local entropy_grad_action_acting = logp:clone():add(1)
-            entropy_grad_action_acting:cmul(torch.exp(logp))
-            entropy_grad_action_acting:mul(g_opts.beta)
-            entropy_grad_action_acting:cmul(active[t]:view(-1,1):expandAs(entropy_grad_action_acting):clone())
-            grad_action_acting:add(entropy_grad_action_acting)
 
             --grad_matching
             local criterion = nn.ClassNLLCriterion()
-            local err = criterion:forward(out[4], matching_label)
+            stat.bl_cost = (stat.bl_cost or 0) +  = criterion:forward(out[4], matching_label)
+            stat.bl_count = (stat.bl_count or 0) + active[t]:sum()
             local grad_matching = criterion:backward(out[4], matching_label)
 
-            
-            --normalize with div(#batch_size)
-            grad_action_monitoring:div(g_opts.batch_size)
-            grad_baseline:div(g_opts.batch_size)
-            grad_action_acting:div(g_opts.batch_size)
-            grad_matching:div(g_opts.batch_size)
 
             --backward with grad recurrent
             local grad_table = {}

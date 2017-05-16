@@ -40,8 +40,8 @@ function mazebase.init_vocab()
     -- general
     vocab_add('nil')
     vocab_add('agent')
-    local mh = 8
-    local mw = 8
+    local mh = 4
+    local mw = 4
     g_opts.MH = mh
     g_opts.MW = mw
     for y = -mh, mh do
