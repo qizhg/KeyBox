@@ -57,13 +57,13 @@ function mazebase.init_vocab()
     vocab_add('box')
     vocab_add('OnGround')
     vocab_add('PickedUp')
-    for i = 1, 2 do
+    for i = 1, 3 do
         vocab_add('BoxType' .. i)
     end
-    for i = 1, 2 do
+    for i = 1, 3 do
         vocab_add('id' .. i)
     end
-    for i = 1, 2 do
+    for i = 1, 3 do
         vocab_add('color' .. i)
     end
     

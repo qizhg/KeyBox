@@ -66,8 +66,8 @@ cmd:option('--nhop', 1, 'the number of hops in MemNN')
 -- game parameters
 cmd:option('--nagents', 1, 'the number of acting agents')
 cmd:option('--nactions', 6, 'the number of agent actions')
-cmd:option('--max_steps', 30, 'force to end the game after this many steps')
-cmd:option('--exp_id', 16, '')
+cmd:option('--max_steps', 40, 'force to end the game after this many steps')
+cmd:option('--exp', 'exp_3all_oneshot_IdColor', '')
 -- training parameters
 cmd:option('--optim', 'rmsprop', 'optimization method: rmsprop | sgd')
 cmd:option('--lrate', 1e-3, 'learning rate')
@@ -84,9 +84,9 @@ cmd:option('--eps_start', 1.0, '')
 cmd:option('--eps_endbatch', 100*20, '')
 
 cmd:option('--epochs', 100, 'the number of training epochs')
-cmd:option('--nbatches', 10, 'the number of mini-batches in one epoch')
+cmd:option('--nbatches', 100, 'the number of mini-batches in one epoch')
 cmd:option('--batch_size', 4, 'size of mini-batch (the number of parallel games) in each thread')
-cmd:option('--nworker', 1, 'the number of threads used for training')
+cmd:option('--nworker', 2, 'the number of threads used for training')
 -- for rmsprop
 cmd:option('--rmsprop_alpha', 0.97, 'parameter of RMSProp')
 cmd:option('--rmsprop_eps', 1e-6, 'parameter of RMSProp')
@@ -94,7 +94,7 @@ cmd:option('--rmsprop_eps', 1e-6, 'parameter of RMSProp')
 cmd:option('--save', '', 'file name to save the model')
 cmd:option('--load', '', 'file name to load the model')
 g_opts = cmd:parse(arg or {})
-g_opts.games_config_path = 'lua/mazebase/config/exp'..g_opts.exp_id..'.lua'
+g_opts.games_config_path = 'lua/mazebase/config/'..g_opts.exp..'.lua'
 g_logs={}
 g_mazebase.init_game()
 g_mazebase.init_vocab()
@@ -106,7 +106,6 @@ end
 for i = 1, 1 do
     g_mazebase.init_game()
     g_log = {}
-    if g_opts.optim == 'rmsprop' then g_rmsprop_state = {} end
     g_init_model()
     g_load_model()
     train(g_opts.epochs)

@@ -119,9 +119,6 @@ function format_helpers(gname)
 end
 
 function g_load_model()
-    if g_opts.model_split~=nil and g_opts.model_split == true then
-        g_load_model_split()
-    end
     if g_opts.load ~= '' then
         if paths.filep(g_opts.load) == false then
             print('WARNING: Failed to load from ' .. g_opts.load)
@@ -139,44 +136,10 @@ function g_load_model()
     end
 end
 
-function g_load_model_split()
-
-    if g_opts.load ~= '' then
-        if paths.filep(g_opts.load) == false then
-            print('WARNING: Failed to load from ' .. g_opts.load)
-            return
-        end
-        local f = torch.load(g_opts.load)
-        g_paramx_monitoring:copy(f.paramx_monitoring)
-        g_paramx_acting:copy(f.paramx_acting)
-        g_log = f.log
-        g_plot_stat = {}
-        for i = 1, #g_log do
-            g_plot_stat[i] = {g_log[i].epoch, g_log[i].reward, g_log[i].success, g_log[i].bl_cost}
-        end
-        if f['optim_state_monitoring'] then g_optim_state_monitoring = f['optim_state_monitoring'] end
-        if f['optim_state_acting'] then g_optim_state_acting = f['optim_state_acting'] end
-        print('model loaded from ', g_opts.load)
-    end
-end
-
 function g_save_model()
-    if g_opts.model_split~=nil and g_opts.model_split == true then
-        g_save_model_split()
-    end
     if g_opts.save ~= '' then
         f = {opts=g_opts, paramx=g_paramx, log=g_log}
         if g_optim_state then f['optim_state'] = g_optim_state end
-        torch.save(g_opts.save, f)
-        print('model saved to ', g_opts.save)
-    end
-end
-
-function g_save_model_split()
-    if g_opts.save ~= '' then
-        f = {opts=g_opts, paramx_monitoring=g_paramx_monitoring, paramx_acting=g_paramx_acting, log=g_log}
-        if g_optim_state_monitoring then f['optim_state_monitoring'] = g_optim_state_monitoring end
-        if g_optim_state_acting then f['optim_state_acting'] = g_optim_state_acting end
         torch.save(g_opts.save, f)
         print('model saved to ', g_opts.save)
     end
