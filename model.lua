@@ -8,7 +8,7 @@
 require('nn')
 require('nngraph')
 paths.dofile('model/Gumbel.lua')
-local model_file = 'model/model_'..g_opts.model..'_'..g_opts.model_id..'.lua'
+local model_file = 'model/model_'..g_opts.model..'.lua'
 paths.dofile(model_file)
 
 

@@ -35,9 +35,8 @@ sso.n_keyboxpairs = 3
 sso.boxstatus = 'all' --all | one
 sso.n_colors = sso.n_keyboxpairs
 sso.costs.success_open = -1
-g_opts.model = 'MLP_A3C'
+g_opts.model = 'MLP_ContComm'
 g_opts.nlayers = 2
-g_opts.model_id = 5
 g_opts.visibile_attr_monitoring = {'color', 'id'}
 g_opts.visibile_attr = {'type', 'color', 'status'}
 

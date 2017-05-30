@@ -54,9 +54,7 @@ end
 
 local cmd = torch.CmdLine()
 -- model parameters
-cmd:option('--model', 'A3C', 'A3C | DQN | MLP_A3C')
-cmd:option('--conv_sz', 9, '')
-
+cmd:option('--conv_sz', 7, '')
 cmd:option('--hidsz', 128, 'the size of the internal state vector')
 cmd:option('--nonlin', 'relu', 'non-linearity type: tanh | relu | none')
 cmd:option('--init_std', 0.2, 'STD of initial weights')
@@ -66,8 +64,8 @@ cmd:option('--nhop', 1, 'the number of hops in MemNN')
 -- game parameters
 cmd:option('--nagents', 1, 'the number of acting agents')
 cmd:option('--nactions', 6, 'the number of agent actions')
-cmd:option('--max_steps', 40, 'force to end the game after this many steps')
-cmd:option('--exp', 'exp_3all_oneshot_IdColor', '')
+cmd:option('--max_steps', 30, 'force to end the game after this many steps')
+cmd:option('--exp', 'exp_2all_oneshot_RNN_IdColor', '')
 -- training parameters
 cmd:option('--optim', 'rmsprop', 'optimization method: rmsprop | sgd')
 cmd:option('--lrate', 1e-3, 'learning rate')

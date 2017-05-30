@@ -14,10 +14,6 @@ function batch_init(size)
 end
 
 function batch_input(batch, active, t)
-    if g_opts.model == 'MLP_A3C' then
-        return batch_input_mlp(batch, active, t)
-    end
-
     active = active:view(#batch, g_opts.nagents)
     local input = torch.Tensor(#batch, g_opts.nagents, g_opts.memsize, g_opts.max_attributes)
     input:fill(g_vocab['nil'])
@@ -33,25 +29,7 @@ function batch_input(batch, active, t)
     return input
 end
 
-function batch_eGreedy(q, eps)
-    --q (#batch, nactions)
-    local q_value = q:clone()
-    local maxs, indices = torch.max(q_value, 2)
-    local action = indices:clone()
-    for i = 1,  g_opts.batch_size do 
-        if torch.uniform()<eps then 
-            action[i]:random(1,g_opts.nactions)
-        end
-    end
-    return action
-   
-end
-
 function batch_input_monitoring(batch, active, t)
-
-    if g_opts.model == 'MLP_A3C' then
-        return batch_input_mlp_monitoring(batch, active, t)
-    end
 
     active = active:view(#batch, g_opts.nagents)
     local input = torch.Tensor(#batch, g_opts.nagents, g_opts.memsize, g_opts.max_attributes)

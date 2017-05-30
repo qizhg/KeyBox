@@ -6,7 +6,7 @@
 -- of patent rights can be found in the PATENTS file in the same directory.
 require('optim')
 
-local train_file = 'train_batch/train_'..g_opts.model..'_'..g_opts.model_id..'.lua'
+local train_file = 'train_batch/train_'..g_opts.model..'.lua'
 paths.dofile(train_file)
 
 function train(N)
@@ -147,91 +147,7 @@ function g_update_param(x, dx)
         error('wrong optim')
     end
 
-    if g_opts.model == 'MLP_A3C' then
-        local mapwords = g_opts.conv_sz*g_opts.conv_sz*g_opts.nwords
-        local nilword = mapwords + 1
-        if g_modules.atab then g_modules.atab.weight[nilword]:zero() end
-        if g_modules.atab_monitoring then g_modules.atab_monitoring.weight[nilword]:zero() end
-    else -- MemNN
-        local nilword = g_vocab['nil']
-        if g_modules.A_LT then g_modules.A_LT.data.module.weight[nilword]:zero() end
-        if g_modules.B_LT then g_modules.B_LT.data.module.weight[nilword]:zero() end
-        if g_modules.A_LT_monitoring then g_modules.A_LT_monitoring.data.module.weight[nilword]:zero() end
-        if g_modules.B_LT_monitoring then g_modules.B_LT_monitoring.data.module.weight[nilword]:zero() end
-    end
-end
-
-function g_update_param_monitoring(x, dx)
-    dx:div(g_opts.nworker)
-    if g_opts.max_grad_norm > 0 then
-        if dx:norm() > g_opts.max_grad_norm then
-            dx:div(dx:norm() / g_opts.max_grad_norm)
-        end
-    end
-    local f = function(x0) return x, dx end
-    if not g_optim_state_monitoring then g_optim_state_monitoring = {} end
-    local config = {learningRate = g_opts.lrate}
-    if g_opts.optim == 'sgd' then
-        config.momentum = g_opts.momentum
-        config.weightDecay = g_opts.wdecay
-        optim.sgd(f, x, config, g_optim_state_monitoring)
-    elseif g_opts.optim == 'rmsprop' then
-        config.alpha = g_opts.rmsprop_alpha
-        config.epsilon = g_opts.rmsprop_eps
-        config.weightDecay = g_opts.wdecay
-        optim.rmsprop(f, x, config, g_optim_state_monitoring)
-    elseif g_opts.optim == 'adam' then
-        config.beta1 = g_opts.adam_beta1
-        config.beta2 = g_opts.adam_beta2
-        config.epsilon = g_opts.adam_eps
-        optim.adam(f, x, config, g_optim_state_monitoring)
-    else
-        error('wrong optim')
-    end
-
-    if g_opts.model == 'MLP_A3C' then
-        local mapwords = g_opts.conv_sz*g_opts.conv_sz*g_opts.nwords
-        local nilword = mapwords + 1
-        if g_modules.atab then g_modules.atab.weight[nilword]:zero() end
-        if g_modules.atab_monitoring then g_modules.atab_monitoring.weight[nilword]:zero() end
-    else -- MemNN
-        local nilword = g_vocab['nil']
-        if g_modules.A_LT then g_modules.A_LT.data.module.weight[nilword]:zero() end
-        if g_modules.B_LT then g_modules.B_LT.data.module.weight[nilword]:zero() end
-        if g_modules.A_LT_monitoring then g_modules.A_LT_monitoring.data.module.weight[nilword]:zero() end
-        if g_modules.B_LT_monitoring then g_modules.B_LT_monitoring.data.module.weight[nilword]:zero() end
-    end
-end
-
-function g_update_param_acting(x, dx)
-    dx:div(g_opts.nworker)
-    if g_opts.max_grad_norm > 0 then
-        if dx:norm() > g_opts.max_grad_norm then
-            dx:div(dx:norm() / g_opts.max_grad_norm)
-        end
-    end
-    local f = function(x0) return x, dx end
-    if not g_optim_state_acting then g_optim_state_acting = {} end
-    local config = {learningRate = g_opts.lrate}
-    if g_opts.optim == 'sgd' then
-        config.momentum = g_opts.momentum
-        config.weightDecay = g_opts.wdecay
-        optim.sgd(f, x, config, g_optim_state_acting)
-    elseif g_opts.optim == 'rmsprop' then
-        config.alpha = g_opts.rmsprop_alpha
-        config.epsilon = g_opts.rmsprop_eps
-        config.weightDecay = g_opts.wdecay
-        optim.rmsprop(f, x, config, g_optim_state_acting)
-    elseif g_opts.optim == 'adam' then
-        config.beta1 = g_opts.adam_beta1
-        config.beta2 = g_opts.adam_beta2
-        config.epsilon = g_opts.adam_eps
-        optim.adam(f, x, config, g_optim_state_acting)
-    else
-        error('wrong optim')
-    end
-
-    if g_opts.model == 'MLP_A3C' then
+    if g_opts.model:sub(1,3) == 'MLP' then
         local mapwords = g_opts.conv_sz*g_opts.conv_sz*g_opts.nwords
         local nilword = mapwords + 1
         if g_modules.atab then g_modules.atab.weight[nilword]:zero() end
