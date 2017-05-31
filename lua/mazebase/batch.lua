@@ -148,11 +148,9 @@ function batch_success(batch)
 end
 
 function batch_matching(batch)
-    local matching = torch.Tensor(#batch):fill(2)
+    local matching = torch.Tensor(#batch):fill(0)
     for i, g in pairs(batch) do
-        if g:is_matching()==true then 
-            matching[i] = 1
-        end
+        matching[i] = g:get_matching_label()
     end
     return matching
 end

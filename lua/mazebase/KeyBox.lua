@@ -26,31 +26,46 @@ end
 
 function KeyBox:add_key()
     --attr: id, color, postion, status
-    local id = torch.randperm(self.n_keyboxpairs)
-    local color = torch.randperm(self.n_colors)
+    local id = torch.randperm(self.n_keyboxpairs) --the order of adding keys
+    self.color_key = torch.randperm(self.n_colors) --color_key[j] is the color of the key with id=j
     for i = 1, self.n_keyboxpairs do 
-        self.key = self:place_item_rand({type = 'key', id = 'id'..id[i], color='color'..color[i], status='OnGround'}) 
+        self:place_item_rand({
+        	type = 'key', 
+        	id = 'id'..id[i], 
+        	color='color'..self.color_key[id[i]], 
+        	status='OnGround'}) 
     end
 end
 function KeyBox:add_box()
     --attr: id, color, postion, status
-    local id = torch.randperm(self.n_keyboxpairs)
-    local color = torch.randperm(self.n_colors)
-    local boxType = torch.Tensor(self.n_keyboxpairs):fill(2)
+    local id = torch.randperm(self.n_keyboxpairs)  --the order of adding boxes
+    self.color_box = torch.randperm(self.n_colors)  --color_box[j] is the color of the box with id=j
+    self.boxType = torch.Tensor(self.n_keyboxpairs):fill(2) --color_boxType[j] is the type of the box with id=j
     if g_opts.boxstatus == 'all' then
-        boxType:fill(1) --all valuable
+        self.boxType:fill(1) --all valuable
     elseif g_opts.boxstatus == 'one' then
-        boxType[torch.random(self.n_keyboxpairs)] = 1
+        self.boxType[torch.random(self.n_keyboxpairs)] = 1
     else
         error('wrong box status')
     end
 
-    self.n_goal_boxes = boxType:eq(1):sum()
+    self.n_goal_boxes = self.boxType:eq(1):sum()
 
     for i = 1, self.n_keyboxpairs do 
-        self.box = self:place_item_rand({type = 'box', id = 'id'..id[i], color='color'..color[i], status='BoxType'..boxType[i]}) 
-
+        self:place_item_rand({
+        	type = 'box', 
+        	id = 'id'..id[i], 
+        	color='color'..self.color_box[id[i]], 
+        	status='BoxType'..self.boxType[i]}) 
     end
+end
+function KeyBox:get_matching_label()
+	local color_key_sorted, sorting_index = torch.sort(self.color_key)
+	local mathcing_string = ""
+	for i = 1, self.n_keyboxpairs do 
+       mathcing_string = mathcing_string ..i..'-'..self.color_box[sorting_index[i]]..' '
+    end
+    return g_opts.matchingstring2id[mathcing_string]
 end
 function KeyBox:add_toggle()
     --self.agent = self:place_item_rand({type = 'agent'})
@@ -263,24 +278,6 @@ end
 function KeyBox:is_success()
     if self.n_goal_boxes == self.success_open_total then
         return true
-    else
-        return false
-    end
-end
-
-function KeyBox:is_matching()
-    local key_color, box_color
-    for _, e in pairs(self.items) do
-        if e.attr.type == 'key' and e.attr.id == 'id1'  then 
-            key_color = e.attr.color
-        elseif e.attr.type == 'box' and e.attr.id == 'id1'  then
-            box_color = e.attr.color
-        else
-            --
-        end
-    end
-    if key_color == box_color then 
-        return true 
     else
         return false
     end
