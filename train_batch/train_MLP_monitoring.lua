@@ -12,7 +12,7 @@ function train_batch(num_batch)
     local reward = {}
     local input = {}
     local action = {}
-    local matching_label = batch_matching(batch)
+    local matching_label = batch_matching(batch):long()
 
     local stat = {}
     active[1] = batch_active(batch)
@@ -21,16 +21,19 @@ function train_batch(num_batch)
     local NLLceriterion = nn.ClassNLLCriterion()
     local err = NLLceriterion:forward(out,matching_label)
     stat.bl_cost = err
-    stat.bl_count = active[t]:sum()
+    stat.bl_count = active[1]:sum()
     local grad = NLLceriterion:backward(out,matching_label)
     g_paramdx:zero()
     g_model:backward(input[1], grad)
 
+    local _, pred = torch.max(out, 2)
+    local success = pred:eq(matching_label):squeeze()
+
     
     for i, g in pairs(batch) do
         stat.reward = 0
-        stat.success = 0
-        stat.count = 1
+        stat.success = (stat.success or 0) + success[i]
+        stat.count = (stat.count or 0) + 1
     end
     return stat
 end

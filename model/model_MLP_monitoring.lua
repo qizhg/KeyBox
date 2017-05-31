@@ -53,8 +53,6 @@ local function mlp_monitoring( input )
         a:add(nn.Sum(2))
         a:add(nn.Add(g_opts.hidsz)) -- bias
         a:add(nonlin())
-        --a:add(nn.BatchNormalization(g_opts.nsymbols_monitoring))
-
         hidstate = a(input)
     else
         error('wrong nlayers')
@@ -71,6 +69,8 @@ function g_build_model()
     local input2hid_monitoring = mlp_monitoring(input_monitoring)
     local comm_encoder = nn.Sequential()
     local num_out = factorial(g_opts.n_colors)
+    comm_encoder:add(nn.Linear(g_opts.hidsz, g_opts.hidsz))
+    comm_encoder:add(nonlin())
     comm_encoder:add(nn.Linear(g_opts.hidsz, num_out))
     comm_encoder:add(nn.LogSoftMax())
     local out_monitoring = comm_encoder(input2hid_monitoring)
