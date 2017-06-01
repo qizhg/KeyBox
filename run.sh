@@ -1,7 +1,7 @@
 #!/bin/bash
-export OMP_NUM_THREADS=2
+export OMP_NUM_THREADS=4
 
 th main.lua \
---batch_size 256 \
---nworker 2 \
---exp 'exp_2all_acting'
+--batch_size 512 \
+--nworker 4 \
+--exp 'exp_1a_1D'

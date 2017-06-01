@@ -57,7 +57,7 @@ function train(N)
         stat.epoch = #g_log + 1
         print(format_stat(stat))
         table.insert(g_log, stat)
-	    g_opts.save = 'model_epoch'
+	    g_opts.save = g_opts.exp..'-model_epoch.t7'
         g_save_model()
     end
 end

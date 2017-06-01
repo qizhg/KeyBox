@@ -57,18 +57,18 @@ local cmd = torch.CmdLine()
 cmd:option('--conv_sz', 7, '')
 cmd:option('--hidsz', 128, 'the size of the internal state vector')
 cmd:option('--nonlin', 'relu', 'non-linearity type: tanh | relu | none')
-cmd:option('--init_std', 0, 'STD of initial weights')
+cmd:option('--init_std', 0.2, 'STD of initial weights')
 cmd:option('--max_attributes', 6, 'maximum number of attributes of each item')
-cmd:option('--memsize', 20, 'size of the memory in MemNN')
+cmd:option('--memsize', 10, 'size of the memory in MemNN')
 cmd:option('--nhop', 1, 'the number of hops in MemNN')
 -- game parameters
 cmd:option('--nagents', 1, 'the number of acting agents')
 cmd:option('--nactions', 6, 'the number of agent actions')
-cmd:option('--max_steps', 40, 'force to end the game after this many steps')
-cmd:option('--exp', 'exp_2all_monitoring', '')
+cmd:option('--max_steps', 30, 'force to end the game after this many steps')
+cmd:option('--exp', 'exp_2a_1D', '')
 -- training parameters
 cmd:option('--optim', 'rmsprop', 'optimization method: rmsprop | sgd')
-cmd:option('--lrate', 5e-3, 'learning rate')
+cmd:option('--lrate', 1e-3, 'learning rate')
 cmd:option('--max_grad_norm', 0, 'gradient clip value')
 cmd:option('--alpha', 0.03, 'coefficient of baseline term in the cost function')
 cmd:option('--beta', 0.05, '')
@@ -83,8 +83,8 @@ cmd:option('--eps_endbatch', 100*20, '')
 
 cmd:option('--epochs', 100, 'the number of training epochs')
 cmd:option('--nbatches', 100, 'the number of mini-batches in one epoch')
-cmd:option('--batch_size', 256, 'size of mini-batch (the number of parallel games) in each thread')
-cmd:option('--nworker', 1, 'the number of threads used for training')
+cmd:option('--batch_size', 10, 'size of mini-batch (the number of parallel games) in each thread')
+cmd:option('--nworker', 2, 'the number of threads used for training')
 -- for rmsprop
 cmd:option('--rmsprop_alpha', 0.97, 'parameter of RMSProp')
 cmd:option('--rmsprop_eps', 1e-6, 'parameter of RMSProp')
@@ -93,7 +93,6 @@ cmd:option('--save', '', 'file name to save the model')
 cmd:option('--load', '', 'file name to load the model')
 g_opts = cmd:parse(arg or {})
 g_opts.games_config_path = 'lua/mazebase/config/'..g_opts.exp..'.lua'
-g_logs={}
 g_mazebase.init_vocab()
 g_mazebase.init_game()
 init_master()
@@ -102,15 +101,11 @@ if g_opts.nworker > 1 then
     g_workers = init_threads()
 end
 
-for i = 1, 1 do
-    g_mazebase.init_game()
-    g_log = {}
-    g_init_model()
-    g_load_model()
-    train(g_opts.epochs)
-    g_opts.save ='exp'..i..'.t7'
-    g_save_model()
-    g_logs[i] = g_log
-end
-g_opts.save ='glogs_exp'..g_opts.exp_id..'.t7'
-g_save_glogs()
+g_mazebase.init_game()
+g_log = {}
+g_init_model()
+g_load_model()
+train(g_opts.epochs)
+g_opts.save = g_opts.exp..'.t7'
+g_save_model()
+

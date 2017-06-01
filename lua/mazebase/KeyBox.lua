@@ -63,7 +63,7 @@ function KeyBox:get_matching_label()
 	local color_key_sorted, sorting_index = torch.sort(self.color_key)
 	local mathcing_string = ""
 	for i = 1, self.n_keyboxpairs do 
-       mathcing_string = mathcing_string ..i..'-'..self.color_box[sorting_index[i]]..' '
+       mathcing_string = mathcing_string..i..'-'..self.color_box[sorting_index[i]]..' '
     end
     return g_opts.matchingstring2id[mathcing_string]
 end
@@ -229,13 +229,19 @@ function KeyBox:to_map_onehot_monitoring(sentence)
     if g_opts.loc_monitoring == true then 
         local count = 0
         local c = 0
+        local ref_y = self.agent.loc.y
+        local ref_x = self.agent.loc.x
+        if g_opts.actingloc_monitoring == false then
+        	ref_y = 1
+        	ref_x = 1
+        end
         for _, e in pairs(self.items) do
             if e.attr.type ~='agent' then
                 local d
                 local tofar = false
                 if e.loc then
-                    local dy = e.loc.y - self.agent.loc.y + torch.ceil(self.conv_sz/2)
-                    local dx = e.loc.x - self.agent.loc.x + torch.ceil(self.conv_sz/2)
+                    local dy = e.loc.y - ref_y + torch.ceil(self.conv_sz/2)
+                    local dx = e.loc.x - ref_x + torch.ceil(self.conv_sz/2)
                     if dx > self.conv_sz or dy > self.conv_sz or dx < 1 or dy < 1 then
                         tofar = true
                     end
@@ -245,7 +251,7 @@ function KeyBox:to_map_onehot_monitoring(sentence)
                     d = self.conv_sz * self.conv_sz + c - 1
                 end
                 if not tofar then
-                    local s = e:to_sentence_visible(self.agent.loc.y, self.agent.loc.x, visibile_attr)
+                    local s = e:to_sentence_visible(ref_y, ref_x, visibile_attr)
                     for i = 1, #s do
                         count = count + 1
                         if count > sentence:size(1) then error('increase memsize!') end
