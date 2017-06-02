@@ -2,7 +2,7 @@
 -- All rights reserved.
 --
 -- This source code is licensed under the BSD-style license found in the
--- LICENSE file in the root directory of this source tree. An additional grant 
+-- LICENSE file in the root directory of this source tree. An additional grant
 -- of patent rights can be found in the PATENTS file in the same directory.
 
 package.path = package.path .. ';lua/?/init.lua'
@@ -38,7 +38,7 @@ end
                 g_mazebase = require('mazebase')
                 g_opts = opts_orig
                 g_vocab = vocab_orig
-                
+
                 paths.dofile('model.lua')
                 paths.dofile('train.lua')
                 g_init_model()
@@ -62,16 +62,25 @@ init_master()
 g_init_model()
 g_load_model()
 
-g_opts.batch_size = 100
 local test_file = 'test_batch/test_'..g_opts.model..'.lua'
 paths.dofile(test_file)
+g_opts.batch_size = 100
+--[[
+g_opts.loc_keys = {}
+g_opts.loc_keys[1] = {'y':, 'x':}
+g_opts.loc_keys[2] = {'y':, 'x':}
+g_opts.loc_boxes = {}
+g_opts.loc_boxes[1] = {'y':, 'x':}
+g_opts.loc_boxes[2] = {'y':, 'x':}
+--]]
+
 stat = test_batch()
 for k, v in pairs(stat) do
     if string.sub(k, 1, 5) == 'count' then
         local s = string.sub(k, 6)
         stat['reward' .. s] = stat['reward' .. s] / v
         stat['success' .. s] = stat['success' .. s] / v
-                
+
     end
 end
 if stat.bl_count ~= nil and stat.bl_count > 0 then
@@ -104,7 +113,7 @@ active = {}
      Gumbel_noise ={}
      comm = {}
      comm_sz = g_opts.nsymbols_monitoring
-    
+
     comm[0] = torch.Tensor(#batch * g_opts.nagents, comm_sz):fill(0)
     active[1] = batch_active(batch)
      oneshot_comm = batch_input_monitoring(batch, active[1], 1)
@@ -115,7 +124,7 @@ active = {}
         if active[t]:sum() == 0 then break end
 
         input[t] = {}
-        if g_opts.oneshot_comm == true then 
+        if g_opts.oneshot_comm == true then
             input[t][1] = oneshot_comm:clone()
         else
             input[t][1] = batch_input_monitoring(batch, active[t], t)
@@ -127,7 +136,7 @@ active = {}
         action[t] = sample_multinomial(torch.exp(out[2]))
 
         comm[t] = out[1]:clone()
-        
+
         batch_act(batch, action[t]:view(-1), active[t])
         batch_update(batch, active[t])
         reward[t] = batch_reward(batch, active[t],t == g_opts.max_steps)
@@ -144,4 +153,3 @@ local out = g_model:forward({input, Gumbel_noise})
 
 csvigo.save({path = "symbol1"..".csv", data = torch.totable(out[2])})
 --]]
-

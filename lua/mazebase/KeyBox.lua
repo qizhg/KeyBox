@@ -6,12 +6,12 @@ function KeyBox:__init(opts, vocab)
 
     self.n_keyboxpairs = opts.n_keyboxpairs
     self.n_colors = opts.n_colors
-    
+
     self:add_default_items() -- blocks, waters
     self:add_toggle() --toggle action for the acting agent
     self:add_key()
     self:add_box()
-    
+
 
     self.success_open_total = 0
     self.failure_open_total = 0
@@ -28,12 +28,20 @@ function KeyBox:add_key()
     --attr: id, color, postion, status
     local id = torch.randperm(self.n_keyboxpairs) --the order of adding keys
     self.color_key = torch.randperm(self.n_colors) --color_key[j] is the color of the key with id=j
-    for i = 1, self.n_keyboxpairs do 
-        self:place_item_rand({
-        	type = 'key', 
-        	id = 'id'..id[i], 
-        	color='color'..self.color_key[id[i]], 
-        	status='OnGround'}) 
+    for i = 1, self.n_keyboxpairs do
+        if g_opts.loc_keys then
+            self:place_item({
+                type = 'key',
+                id = 'id'..id[i],
+                color='color'..self.color_key[id[i]],
+                status='OnGround'}, g_opts.loc_keys[i].y,g_opts.loc_keys[i].x)
+        else
+            self:place_item_rand({
+            	type = 'key',
+            	id = 'id'..id[i],
+            	color='color'..self.color_key[id[i]],
+            	status='OnGround'})
+        end
     end
 end
 function KeyBox:add_box()
@@ -51,18 +59,26 @@ function KeyBox:add_box()
 
     self.n_goal_boxes = self.boxType:eq(1):sum()
 
-    for i = 1, self.n_keyboxpairs do 
-        self:place_item_rand({
-        	type = 'box', 
-        	id = 'id'..id[i], 
-        	color='color'..self.color_box[id[i]], 
-        	status='BoxType'..self.boxType[i]}) 
+    for i = 1, self.n_keyboxpairs do
+        if g_opts.loc_boxes then
+            self:place_item({
+            	type = 'box',
+            	id = 'id'..id[i],
+            	color='color'..self.color_box[id[i]],
+            	status='BoxType'..self.boxType[i]}, g_opts.loc_boxes[i].y,g_opts.loc_boxes[i].x)
+        else
+            self:place_item_rand({
+            	type = 'box',
+            	id = 'id'..id[i],
+            	color='color'..self.color_box[id[i]],
+            	status='BoxType'..self.boxType[i]})
+        end
     end
 end
 function KeyBox:get_matching_label()
 	local color_key_sorted, sorting_index = torch.sort(self.color_key)
 	local mathcing_string = ""
-	for i = 1, self.n_keyboxpairs do 
+	for i = 1, self.n_keyboxpairs do
        mathcing_string = mathcing_string..i..'-'..self.color_box[sorting_index[i]]..' '
     end
     return g_opts.matchingstring2id[mathcing_string]
@@ -73,7 +89,7 @@ function KeyBox:add_toggle()
     self.agent:add_action('toggle',
         function(self) --self for agent
             local l = self.map.items[self.loc.y][self.loc.x]
-            if #l == 1 then --only agent 
+            if #l == 1 then --only agent
                 --do nothing
             elseif #l==2 then --agent + (box or key)
                 local agent, the_second
@@ -85,9 +101,9 @@ function KeyBox:add_toggle()
                     end
                 end
                 if the_second.attr.type == 'key' then
-                    if the_second.attr.status == 'OnGround' then 
+                    if the_second.attr.status == 'OnGround' then
                         the_second.attr.status = 'PickedUp'
-                    else 
+                    else
                         the_second.attr.status = 'OnGround'
                     end
                 end
@@ -96,7 +112,7 @@ function KeyBox:add_toggle()
                 for i = 1, #l do
                     if l[i].attr.type == 'agent' then
                         agent = l[i]
-                    elseif l[i].attr.type == 'key' and l[i].attr.status == 'PickedUp' then 
+                    elseif l[i].attr.type == 'key' and l[i].attr.status == 'PickedUp' then
                         key_pickedup = l[i]
                     else
                         the_third = l[i]
@@ -121,7 +137,7 @@ end
 
 function KeyBox:update()
     parent.update(self) -- t = t+1
-    
+
     --picked up items follow
     for i = 1, #self.items do
         local e = self.items[i]
@@ -226,7 +242,7 @@ function KeyBox:to_map_onehot_monitoring(sentence)
     local visibile_attr = g_opts.visibile_attr_monitoring
 
 
-    if g_opts.loc_monitoring == true then 
+    if g_opts.loc_monitoring == true then
         local count = 0
         local c = 0
         local ref_y = self.agent.loc.y
@@ -260,7 +276,7 @@ function KeyBox:to_map_onehot_monitoring(sentence)
                 end
             end
         end
-    
+
     else
         local count = 0
         local c = 0
@@ -276,9 +292,9 @@ function KeyBox:to_map_onehot_monitoring(sentence)
             end
         end
     end
-    
-    
-    
+
+
+
 end
 
 function KeyBox:is_success()
@@ -296,15 +312,15 @@ function KeyBox:get_action_label()
     local res = 5
     if #l == 1 then --go to key
         local dst = self.key.loc
-        if y > dst.y then 
+        if y > dst.y then
             res = 1
-        elseif y < dst.y then 
+        elseif y < dst.y then
             res = 2
-        elseif x > dst.x then 
+        elseif x > dst.x then
             res = 3
-        elseif x < dst.x then 
+        elseif x < dst.x then
             res = 4
-        else 
+        else
             --
         end
     elseif #l == 2 then
@@ -322,7 +338,7 @@ function KeyBox:get_action_label()
                 print(l[i].attr)
             end
         end
-        if the_second.attr.type == 'box'then 
+        if the_second.attr.type == 'box'then
             dst = self.key.loc
         elseif self.key.attr.status == 'OnGround' then
             res = 6
@@ -330,15 +346,15 @@ function KeyBox:get_action_label()
             dst = self.box.loc
         end
         if dst~= nil then
-            if y > dst.y then 
+            if y > dst.y then
             res = 1
-            elseif y < dst.y then 
+            elseif y < dst.y then
                 res = 2
-            elseif x > dst.x then 
+            elseif x > dst.x then
                 res = 3
-            elseif x < dst.x then 
+            elseif x < dst.x then
                 res = 4
-            else 
+            else
                 --
             end
         end
@@ -349,5 +365,5 @@ function KeyBox:get_action_label()
         print('!!!!!!!!!!!!!!!!!!!')
     end
 
-    return res 
+    return res
 end
