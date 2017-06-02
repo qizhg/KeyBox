@@ -65,7 +65,7 @@ g_load_model()
 g_opts.batch_size = 100
 local test_file = 'test_batch/test_'..g_opts.model..'.lua'
 paths.dofile(test_file)
-stat = test_batch(g_opts.epochs)
+stat = test_batch()
 for k, v in pairs(stat) do
     if string.sub(k, 1, 5) == 'count' then
         local s = string.sub(k, 6)

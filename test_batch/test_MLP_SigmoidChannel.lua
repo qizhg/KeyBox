@@ -5,7 +5,7 @@
 -- LICENSE file in the root directory of this source tree. An additional grant 
 -- of patent rights can be found in the PATENTS file in the same directory.
 
-function test_batch(num_batch)
+function test_batch()
     -- start a new episode
     local batch = batch_init(g_opts.batch_size)
     local active = {}

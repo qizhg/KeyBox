@@ -21,8 +21,12 @@ function train_batch(num_batch)
     active[1] = batch_active(batch)
     local oneshot_monitoring = batch_input_mlp_monitoring(batch, active[1], 1)
     local oneshot_noise = torch.Tensor(#batch * g_opts.nagents, comm_sz):fill(0)
-    if g_opts.noise_std and g_opts.noise_std>0 then 
-        oneshot_noise:normal(0, g_opts.noise_std)
+    local noise_std = g_opts.noise_std or 0
+    if g_opts.noise_increase then 
+        noise_std = noise_std + (num_batch-1)*g_opts.noise_increase
+    end
+    if noise_std>0 then 
+        oneshot_noise:normal(0, noise_std)
     end
 
     -- play the games
@@ -37,8 +41,8 @@ function train_batch(num_batch)
         else
             input[t][1] = batch_input_mlp_monitoring(batch, active[t], t)
             input[t][4] = torch.Tensor(#batch * g_opts.nagents, comm_sz):fill(0)
-            if g_opts.noise_std and g_opts.noise_std>0 then 
-                input[t][4]:normal(0, g_opts.noise_std)
+            if noise_std>0 then  
+                input[t][4]:normal(0, noise_std)
             end
         end
         input[t][2] = batch_input_mlp(batch, active[t], t)

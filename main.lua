@@ -65,7 +65,7 @@ cmd:option('--nhop', 1, 'the number of hops in MemNN')
 cmd:option('--nagents', 1, 'the number of acting agents')
 cmd:option('--nactions', 6, 'the number of agent actions')
 cmd:option('--max_steps', 30, 'force to end the game after this many steps')
-cmd:option('--exp', 'exp_2a_1D', '')
+cmd:option('--exp', 'exp_2a_1D_stdlin', '')
 -- training parameters
 cmd:option('--optim', 'rmsprop', 'optimization method: rmsprop | sgd')
 cmd:option('--lrate', 1e-3, 'learning rate')
