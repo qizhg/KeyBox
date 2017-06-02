@@ -10,9 +10,6 @@ local train_file = 'train_batch/train_'..g_opts.model..'.lua'
 paths.dofile(train_file)
 
 function train(N)
-    if g_opts.model_split~=nil and g_opts.model_split == true then
-        train_split(N)
-    end
     for n = 1, N do
         local stat = {}
         local epoch = #g_log + 1
@@ -62,61 +59,6 @@ function train(N)
     end
 end
 
-function train_split(N)
-    for n = 1, N do
-        local stat = {}
-        local epoch = #g_log + 1
-        for k = 1, g_opts.nbatches do
-            local num_batch = (epoch-1)*g_opts.nbatches + k
-            xlua.progress(k, g_opts.nbatches)
-            if g_opts.nworker > 1 then
-                g_paramdx_monitoring:zero().
-                g_paramdx_acting:zero()
-                for w = 1, g_opts.nworker do
-                    g_workers:addjob(w, train_batch_thread,
-                        function(paramdx_monitoring_thread, paramdx_acting_thread, s)
-                            g_paramdx_monitoring:add(paramdx_monitoring_thread)
-                            g_paramdx_acting:add(paramdx_acting_thread)
-                            for k, v in pairs(s) do
-                                stat[k] = (stat[k] or 0) + v
-                            end
-                        end,
-                        g_opts, g_paramx_monitoring, g_paramx_acting, num_batch
-                    )
-                end
-                g_workers:synchronize()
-            else
-                local s = train_batch(num_batch)
-                for k, v in pairs(s) do
-                    stat[k] = (stat[k] or 0) + v
-                end
-            end
-            if epoch % 2 == 0 then 
-                g_update_param_monitoring(g_paramx_monitoring, g_paramdx_monitoring)
-            else
-                g_update_param_acting(g_paramx_acting, g_paramdx_acting)
-            end
-        end
-        for k, v in pairs(stat) do
-            if string.sub(k, 1, 5) == 'count' then
-                local s = string.sub(k, 6)
-                stat['reward' .. s] = stat['reward' .. s] / v
-                stat['success' .. s] = stat['success' .. s] / v
-                
-            end
-        end
-        if stat.bl_count ~= nil and stat.bl_count > 0 then
-            stat.bl_cost = stat.bl_cost / stat.bl_count
-        else
-            stat.bl_cost = 0
-        end
-        stat.epoch = #g_log + 1
-        print(format_stat(stat))
-        table.insert(g_log, stat)
-        g_opts.save = 'model_epoch'
-        g_save_model()
-    end
-end
 
 
 function g_update_param(x, dx)

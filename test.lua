@@ -52,56 +52,34 @@ end
     return workers
 end
 
- cmd = torch.CmdLine()
--- model parameters
-cmd:option('--model', 'A3C', 'A3C | DQN | MLP_A3C')
-cmd:option('--conv_sz', 9, '')
-
-cmd:option('--hidsz', 128, 'the size of the internal state vector')
-cmd:option('--nonlin', 'relu', 'non-linearity type: tanh | relu | none')
-cmd:option('--init_std', 0.2, 'STD of initial weights')
-cmd:option('--max_attributes', 6, 'maximum number of attributes of each item')
-cmd:option('--memsize', 20, 'size of the memory in MemNN')
-cmd:option('--nhop', 1, 'the number of hops in MemNN')
--- game parameters
-cmd:option('--nagents', 1, 'the number of acting agents')
-cmd:option('--nactions', 6, 'the number of agent actions')
-cmd:option('--max_steps', 30, 'force to end the game after this many steps')
-cmd:option('--exp_id', 8, '')
--- training parameters
-cmd:option('--optim', 'rmsprop', 'optimization method: rmsprop | sgd')
-cmd:option('--lrate', 1e-3, 'learning rate')
-cmd:option('--max_grad_norm', 0, 'gradient clip value')
-cmd:option('--alpha', 0.03, 'coefficient of baseline term in the cost function')
-cmd:option('--beta', 0.01, '')
-
-cmd:option('--Gumbel_temp', 1.0, '')
-cmd:option('--Gumbel_start', 5.0, '')
-cmd:option('--Gumbel_endbatch', 100*75, '')
-
-cmd:option('--eps_end', 0.1, '')
-cmd:option('--eps_start', 1.0, '')
-cmd:option('--eps_endbatch', 100*20, '')
-
-cmd:option('--epochs', 100, 'the number of training epochs')
-cmd:option('--nbatches', 100, 'the number of mini-batches in one epoch')
-cmd:option('--batch_size', 100, 'size of mini-batch (the number of parallel games) in each thread')
-cmd:option('--nworker', 1, 'the number of threads used for training')
--- for rmsprop
-cmd:option('--rmsprop_alpha', 0.97, 'parameter of RMSProp')
-cmd:option('--rmsprop_eps', 1e-6, 'parameter of RMSProp')
---other
-cmd:option('--save', '', 'file name to save the model')
-cmd:option('--load', 'exp1.t7', 'file name to load the model')
-g_opts = cmd:parse(arg or {})
-g_opts.games_config_path = 'lua/mazebase/config/exp'..g_opts.exp_id..'.lua'
-g_logs={}
-g_mazebase.init_game()
+local exp = 'exp_2a_1D_std20'
+local f = torch.load(exp..'.t7')
+g_opts = f.opts
+g_opts.load = exp..'.t7'
 g_mazebase.init_vocab()
-init_master()
 g_mazebase.init_game()
+init_master()
 g_init_model()
 g_load_model()
+
+g_opts.batch_size = 100
+local test_file = 'test_batch/test_'..g_opts.model..'.lua'
+paths.dofile(test_file)
+stat = test_batch(g_opts.epochs)
+for k, v in pairs(stat) do
+    if string.sub(k, 1, 5) == 'count' then
+        local s = string.sub(k, 6)
+        stat['reward' .. s] = stat['reward' .. s] / v
+        stat['success' .. s] = stat['success' .. s] / v
+                
+    end
+end
+if stat.bl_count ~= nil and stat.bl_count > 0 then
+    stat.bl_cost = stat.bl_cost / stat.bl_count
+else
+    stat.bl_cost = 0
+end
+print(stat)
 --[[
 batch = batch_init(g_opts.batch_size)
 input = {}
@@ -158,11 +136,12 @@ active = {}
     print(success:sum())
 --]]
 
-
+--[[
 local csv = csvigo.load({path = "./comm1.csv", verbose = false, mode = "raw"})
 local input = torch.Tensor(csv)
 local Gumbel_noise = torch.rand(input:size(1), input:size(2)):log():neg():log():neg()
 local out = g_model:forward({input, Gumbel_noise})
 
 csvigo.save({path = "symbol1"..".csv", data = torch.totable(out[2])})
+--]]
 
