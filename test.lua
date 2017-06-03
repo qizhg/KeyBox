@@ -65,6 +65,8 @@ g_load_model()
 local test_file = 'test_batch/test_'..g_opts.model..'.lua'
 paths.dofile(test_file)
 g_opts.batch_size = 100
+
+--------loc fixed-------------
 --[[
 g_opts.loc_keys = {}
 g_opts.loc_keys[1] = {'y':, 'x':}
@@ -73,6 +75,27 @@ g_opts.loc_boxes = {}
 g_opts.loc_boxes[1] = {'y':, 'x':}
 g_opts.loc_boxes[2] = {'y':, 'x':}
 --]]
+
+--------id fixed-------------
+--[[
+g_opts.id_keys = torch.randperm(2)
+g_opts.id_keys[1] = 1
+g_opts.id_keys[2] = 2
+g_opts.id_boxes = torch.randperm(2)
+g_opts.id_boxes[1] = 1
+g_opts.id_boxes[2] = 2
+--]]
+
+--------color fixed-------------
+--[[
+g_opts.color_keys = torch.randperm(2)
+g_opts.color_keys[1] = 1
+g_opts.color_keys[2] = 2
+g_opts.color_boxes = torch.randperm(2)
+g_opts.color_boxes[1] = 1
+g_opts.color_boxes[2] = 2
+--]]
+
 
 stat = test_batch()
 for k, v in pairs(stat) do

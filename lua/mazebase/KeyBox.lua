@@ -26,8 +26,8 @@ end
 
 function KeyBox:add_key()
     --attr: id, color, postion, status
-    local id = torch.randperm(self.n_keyboxpairs) --the order of adding keys
-    self.color_key = torch.randperm(self.n_colors) --color_key[j] is the color of the key with id=j
+    local id = g_opts.id_keys or torch.randperm(self.n_keyboxpairs) --the order of adding keys
+    self.color_key = g_opts.color_keys or torch.randperm(self.n_colors) --color_key[j] is the color of the key with id=j
     for i = 1, self.n_keyboxpairs do
         if g_opts.loc_keys then
             self:place_item({
@@ -46,8 +46,8 @@ function KeyBox:add_key()
 end
 function KeyBox:add_box()
     --attr: id, color, postion, status
-    local id = torch.randperm(self.n_keyboxpairs)  --the order of adding boxes
-    self.color_box = torch.randperm(self.n_colors)  --color_box[j] is the color of the box with id=j
+    local id = g_opts.id_boxes or torch.randperm(self.n_keyboxpairs)  --the order of adding boxes
+    self.color_box = g_opts.color_boxes or torch.randperm(self.n_colors)  --color_box[j] is the color of the box with id=j
     self.boxType = torch.Tensor(self.n_keyboxpairs):fill(2) --color_boxType[j] is the type of the box with id=j
     if g_opts.boxstatus == 'all' then
         self.boxType:fill(1) --all valuable
