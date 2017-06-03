@@ -1,8 +1,8 @@
 
 require'gnuplot'
 
-local exp_id=3
-local f = torch.load('exp'..exp_id..'_run3.t7')
+local exp='exp_2a_1D_stdlin-model_epoch'
+local f = torch.load(exp..'.t7')
 g_logs ={}
 g_logs [1] = f.log
 epochs = #g_logs[1]
@@ -24,22 +24,9 @@ end
 
 ---------------------------------------------------
 
-gnuplot.pngfigure('reward_exp'..exp_id..'.png')
+gnuplot.pngfigure('success_'..exp..'.png')
 gnuplot.plot(
-	{'run 1',x1,reward[1],'with lines ls 1'}
-	--{'run 2',x1,reward[2],'with lines ls 2'},
-	--{'run 3',x1,reward[3],'with lines ls 3'}
-	--{'run 4',x1,reward[4],'with lines ls 4'},
-	--{'run 5',x1,reward[5],'with lines ls 5'}
-	)
-gnuplot.xlabel('epochs(1 epoch = 100 rmsprop iterations)')
-gnuplot.ylabel('reward')
-gnuplot.plotflush()
-
-
-gnuplot.pngfigure('success_exp'..exp_id..'.png')
-gnuplot.plot(
-	{'run 1',x1,success[1],'with lines ls 1'}
+	{x1,success[1],'with lines ls 1'}
 	--{'run 2',x1,success[2],'with lines ls 2'},
 	--{'run 3',x1,success[3],'with lines ls 3'}
 	--{'run 4',x1,success[4],'with lines ls 4'},
@@ -48,3 +35,4 @@ gnuplot.plot(
 gnuplot.xlabel('epochs (1 epoch = 100 rmsprop iterations)')
 gnuplot.ylabel('success')
 gnuplot.plotflush()
+gnuplot.title('(color, id), noise std = 0.01 * #epoch')

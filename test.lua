@@ -52,7 +52,7 @@ end
     return workers
 end
 
-local exp = 'exp_2a_1D_std20'
+local exp = 'exp_2a_1D_stdlin'
 local f = torch.load(exp..'.t7')
 g_opts = f.opts
 g_opts.load = exp..'.t7'
