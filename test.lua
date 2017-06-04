@@ -52,7 +52,7 @@ end
     return workers
 end
 
-local exp = 'exp_2bb_1D_std00'
+local exp = 'exp_2cc_1D_std00'
 local f = torch.load(exp..'.t7')
 g_opts = f.opts
 g_opts.load = exp..'.t7'
@@ -64,7 +64,7 @@ g_load_model()
 
 local test_file = 'test_batch/test_'..g_opts.model..'.lua'
 paths.dofile(test_file)
-g_opts.batch_size = 100
+g_opts.batch_size = 500
 
 --------loc fixed-------------
 
@@ -93,13 +93,12 @@ g_opts.loc_agents[1].x =
 --------id fixed-------------
 --[[
 g_opts.id_keys = torch.randperm(2)
-g_opts.id_keys[1] = 1
-g_opts.id_keys[2] = 2
+g_opts.id_keys[1] = 2
+g_opts.id_keys[2] = 1
 g_opts.id_boxes = torch.randperm(2)
 g_opts.id_boxes[1] = 1
 g_opts.id_boxes[2] = 2
 --]]
-
 --------color fixed-------------
 --[[
 g_opts.color_keys = torch.randperm(2)

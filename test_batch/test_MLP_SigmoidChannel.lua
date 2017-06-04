@@ -16,20 +16,23 @@ function test_batch()
     local Gumbel_noise ={}
     local comm = {}
     local comm_sz = g_opts.nsymbols_monitoring
-    --local matching = batch_matching(batch)
-    --csvigo.save({path = "matching_"..g_opts.exp..".csv", data = torch.totable(matching:view(-1,1))})
+    local matching = batch_matching(batch)
+    csvigo.save({path = "matching_"..g_opts.exp..".csv", data = torch.totable(matching:view(-1,1))})
 
     
     comm[0] = torch.Tensor(#batch * g_opts.nagents, comm_sz):fill(0)
     active[1] = batch_active(batch)
     local oneshot_monitoring = batch_input_mlp_monitoring(batch, active[1], 1)
     local oneshot_noise = torch.Tensor(#batch * g_opts.nagents, comm_sz):fill(0)
-    if g_opts.noise_std and g_opts.noise_std>0 then 
+    if g_opts.noise_std and g_opts.noise_std>0 then
+        print(g_opts.noise_std)
         oneshot_noise:normal(0, g_opts.noise_std)
     end
 
     -- play the games
+    local agent = batch[1].agent
     for t = 1, g_opts.max_steps do
+        --print(agent.loc.y..', '..agent.loc.x)
         active[t] = batch_active(batch)
         if active[t]:sum() == 0 then break end
 
@@ -51,6 +54,7 @@ function test_batch()
         if t==1 and g_opts.oneshot_comm == true then 
             local channel_in = g_modules['comm_mean'].output:clone()
             local channel_out = nn.Sigmoid():forward(channel_in)
+            --print(channel_in)
             csvigo.save({path = "channelIn_"..g_opts.exp..".csv", data = torch.totable(channel_in)})
             csvigo.save({path = "channelOut_"..g_opts.exp..".csv", data = torch.totable(channel_out)})
         end
