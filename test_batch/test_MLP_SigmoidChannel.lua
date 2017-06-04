@@ -16,8 +16,8 @@ function test_batch()
     local Gumbel_noise ={}
     local comm = {}
     local comm_sz = g_opts.nsymbols_monitoring
-    local matching = batch_matching(batch)
-    csvigo.save({path = "matching_"..g_opts.exp..".csv", data = torch.totable(matching:view(-1,1))})
+    --local matching = batch_matching(batch)
+    --csvigo.save({path = "matching_"..g_opts.exp..".csv", data = torch.totable(matching:view(-1,1))})
 
     
     comm[0] = torch.Tensor(#batch * g_opts.nagents, comm_sz):fill(0)

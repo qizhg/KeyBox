@@ -80,7 +80,12 @@ function MazeBase:add_default_items()
     if self.agent == nil then
         self.agents = {}
         for i = 1, self.nagents do
-            self.agents[i] = self:place_item_rand({type = 'agent', name = 'agent' .. i})
+            if g_opts.loc_agents then 
+                self.agents[i] = self:place_item({type = 'agent', name = 'agent' .. i}
+                    , g_opts.loc_agents[i].y,g_opts.loc_agents[i].x)
+            else
+                self.agents[i] = self:place_item_rand({type = 'agent', name = 'agent' .. i})
+            end
         end
         self.agent = self.agents[1]
     end

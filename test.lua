@@ -52,7 +52,7 @@ end
     return workers
 end
 
-local exp = 'exp_2a_1D_stdlin'
+local exp = 'exp_2bb_1D_std00'
 local f = torch.load(exp..'.t7')
 g_opts = f.opts
 g_opts.load = exp..'.t7'
@@ -67,13 +67,27 @@ paths.dofile(test_file)
 g_opts.batch_size = 100
 
 --------loc fixed-------------
---[[
+
 g_opts.loc_keys = {}
-g_opts.loc_keys[1] = {'y':, 'x':}
-g_opts.loc_keys[2] = {'y':, 'x':}
+g_opts.loc_keys[1] = {}
+g_opts.loc_keys[1].y = 1
+g_opts.loc_keys[1].x = 1
+g_opts.loc_keys[2] = {}
+g_opts.loc_keys[2].y = 1
+g_opts.loc_keys[2].x = 4
 g_opts.loc_boxes = {}
-g_opts.loc_boxes[1] = {'y':, 'x':}
-g_opts.loc_boxes[2] = {'y':, 'x':}
+g_opts.loc_boxes[1] = {}
+g_opts.loc_boxes[1].y = 4
+g_opts.loc_boxes[1].x = 1
+g_opts.loc_boxes[2] = {}
+g_opts.loc_boxes[2].y = 4
+g_opts.loc_boxes[2].x = 4
+
+--------agent loc fixed-------------
+--[[
+g_opts.loc_agents = {}
+g_opts.loc_agents[1].y = 
+g_opts.loc_agents[1].x = 
 --]]
 
 --------id fixed-------------
