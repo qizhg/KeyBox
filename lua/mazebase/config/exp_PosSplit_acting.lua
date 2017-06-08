@@ -45,10 +45,40 @@ g_opts.visibile_attr = {'type', 'color', 'status', 'id'}
 
 g_opts.hidsz = 128
 
-
-
 g_opts.MH = mapH[1]
 g_opts.MW = mapW[1]
+
+g_opts.id2pos={}
+local position_comb = combs(g_opts.n_keys+g_opts.n_boxes,g_opts.MH*g_opts.MW)
+--local position_comb = combs(3,3)
+
+local keybox_within_comb = combs(g_opts.n_keys, g_opts.n_keys+g_opts.n_boxes)
+for k, v in ipairs(position_comb) do 
+	for kk, vv in ipairs(keybox_within_comb) do 
+		local cur_key = 1
+		local cur_box = 1
+		local pos={}
+		for item = 1, g_opts.n_keys+g_opts.n_boxes do 
+			if has_value (vv, item) then --key
+				pos[cur_key] = v[vv[cur_key]]
+				cur_key = cur_key +1
+			else
+				pos[cur_box + g_opts.n_keys] = v[item]
+				cur_box = cur_box +1
+			end
+		end
+		g_opts.id2pos[#g_opts.id2pos+1] = pos
+	end
+end
+local training_percetage = 1.0
+local training_testing = torch.rand(#g_opts.id2pos)
+training_testing = torch.le(training_testing, training_percetage) --1: training, 0:testing
+_, g_opts.training_testing_indices = torch.sort(training_testing, 1, true)
+g_opts.num_training = torch.eq(training_testing,1):sum()
+g_opts.num_testing = #g_opts.id2pos - g_opts.num_training
+g_opts.training_testing = 1
+g_log_test = {}
+
 
 
 

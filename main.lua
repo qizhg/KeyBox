@@ -65,7 +65,7 @@ cmd:option('--nhop', 1, 'the number of hops in MemNN')
 cmd:option('--nagents', 1, 'the number of acting agents')
 cmd:option('--nactions', 6, 'the number of agent actions')
 cmd:option('--max_steps', 30, 'force to end the game after this many steps')
-cmd:option('--exp', 'exp_2a_1D_stdlin', '')
+cmd:option('--exp', 'exp_PosSplit_acting', '')
 -- training parameters
 cmd:option('--optim', 'rmsprop', 'optimization method: rmsprop | sgd')
 cmd:option('--lrate', 1e-3, 'learning rate')
@@ -93,9 +93,11 @@ cmd:option('--save', '', 'file name to save the model')
 cmd:option('--load', '', 'file name to load the model')
 g_opts = cmd:parse(arg or {})
 g_opts.games_config_path = 'lua/mazebase/config/'..g_opts.exp..'.lua'
+paths.dofile('util.lua')
 g_mazebase.init_vocab()
 g_mazebase.init_game()
 init_master()
+
 
 if g_opts.nworker > 1 then
     g_workers = init_threads()
@@ -108,4 +110,5 @@ g_load_model()
 train(g_opts.epochs)
 g_opts.save = g_opts.exp..'.t7'
 g_save_model()
+
 

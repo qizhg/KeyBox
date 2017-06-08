@@ -32,33 +32,45 @@ function tensor_to_words(input, show_prob)
     end
 end
 
-function rmsprop(opfunc, x, config, state)
-    -- (0) get/update state
-    local config = config or {}
-    local state = state or config
-    local lr = config.learningRate or 1e-2
-    local alpha = config.alpha or 0.99
-    local epsilon = config.epsilon or 1e-8
-
-    -- (1) evaluate f(x) and df/dx
-    local fx, dfdx = opfunc(x)
-
-    -- (2) initialize mean square values and square gradient storage
-    if not state.m then
-      state.m = torch.Tensor():typeAs(x):resizeAs(dfdx):zero()
-      state.tmp = torch.Tensor():typeAs(x):resizeAs(dfdx)
+function combs(k, n)
+    if k*n == 0 then 
+        local ret = {{}}
+        return ret
+    elseif k >= n then 
+        local ret={}
+        ret[1] = {}
+        for i = 1, n do
+            ret[1][1+#ret[1]] = i
+        end
+        return ret
+    else
+        local ret_case1 = combs(k, n-1)
+        local ret_case2 = combs(k-1, n-1)
+        for i = 1, #ret_case2 do
+            ret_case2[i][1+#ret_case2[i]] = n
+            ret_case1[1+#ret_case1] = ret_case2[i]
+        end
+        return ret_case1
     end
 
-    -- (3) calculate new (leaky) mean squared values
-    state.m:mul(alpha)
-    state.m:addcmul(1.0-alpha, dfdx, dfdx)
+end
 
-    -- (4) perform update
-    state.tmp:sqrt(state.m):add(epsilon)
-    x:addcdiv(-lr, dfdx, state.tmp)
+function has_value (tab, val)
+    for index, value in ipairs(tab) do
+        if value == val then
+            return true
+        end
+    end
 
-    -- return x*, f(x) before optimization
-    return x, {fx}
+    return false
+end
+function index2yx(index, W)
+    --index = (y-1)*W + x
+    x = index % W
+    if x== 0 then x = W end
+    y = (index-x)/W + 1
+    return y, x
+
 end
 
 function format_stat(stat)

@@ -2,16 +2,15 @@ local KeyBox, parent = torch.class('KeyBox', 'MazeBase')
 
 function KeyBox:__init(opts, vocab)
     parent.__init(self, opts, vocab)
-    self.conv_sz = g_opts.conv_sz
 
-    self.n_keyboxpairs = opts.n_keyboxpairs
-    self.n_colors = opts.n_colors
+    if g_opts.training_testing then
+        self:sample_loc()
+    end
 
-    self:add_default_items() -- blocks, waters
-    self:add_toggle() --toggle action for the acting agent
     self:add_key()
     self:add_box()
-
+    self:add_default_items() -- agent
+    self:add_toggle() --toggle action for the acting agent
 
     self.success_open_total = 0
     self.failure_open_total = 0
@@ -21,56 +20,81 @@ function KeyBox:__init(opts, vocab)
     self.finished = false
 
 end
-function KeyBox:add_test()
+function KeyBox:sample_loc()
+    local pos
+    if g_opts.training_testing == 1 then --training
+        local index = torch.rand(1):mul(g_opts.num_training):ceil()[1]
+        index = g_opts.training_testing_indices[index]
+        pos = g_opts.id2pos[index]
+    else --testing
+        local index = torch.rand(1):mul(g_opts.num_testing):ceil()[1]
+        index = g_opts.training_testing_indices[index + g_opts.num_training]
+        pos = g_opts.id2pos[index]
+    end
+    g_opts.loc_keys = {}
+    g_opts.loc_boxes = {}
+    for i = 1, g_opts.n_keys do
+        local y, x = index2yx(pos[i], g_opts.MW)
+        g_opts.loc_keys[i] = {}
+        g_opts.loc_keys[i].y = y
+        g_opts.loc_keys[i].x = x
+    end
+    for i = 1, g_opts.n_boxes do
+        local y, x = index2yx(pos[i+g_opts.n_keys], g_opts.MW)
+        g_opts.loc_boxes[i] = {}
+        g_opts.loc_boxes[i].y = y
+        g_opts.loc_boxes[i].x = x
+    end
+
 end
 
 function KeyBox:add_key()
     --attr: id, color, postion, status
-    local id = g_opts.id_keys or torch.randperm(self.n_keyboxpairs) --the order of adding keys
-    self.color_key = g_opts.color_keys or torch.randperm(self.n_colors) --color_key[j] is the color of the key with id=j
-    for i = 1, self.n_keyboxpairs do
+    local id = g_opts.id_keys or torch.randperm(g_opts.n_keys) --the order of adding keys
+    self.color_keys = g_opts.color_keys or torch.randperm(g_opts.n_color_keys) --color_keys[j] is the color of the key with id=j
+    for i = 1, g_opts.n_keys do
         if g_opts.loc_keys then
             self:place_item({
                 type = 'key',
                 id = 'id'..id[i],
-                color='color'..self.color_key[id[i]],
-                status='OnGround'}, g_opts.loc_keys[i].y,g_opts.loc_keys[i].x)
+                color = 'color'..self.color_keys[id[i]],
+                status = 'OnGround'}, g_opts.loc_keys[i].y,g_opts.loc_keys[i].x)
         else
             self:place_item_rand({
             	type = 'key',
             	id = 'id'..id[i],
-            	color='color'..self.color_key[id[i]],
+            	color='color'..self.color_keys[id[i]],
             	status='OnGround'})
         end
     end
 end
 function KeyBox:add_box()
     --attr: id, color, postion, status
-    local id = g_opts.id_boxes or torch.randperm(self.n_keyboxpairs)  --the order of adding boxes
-    self.color_box = g_opts.color_boxes or torch.randperm(self.n_colors)  --color_box[j] is the color of the box with id=j
-    self.boxType = torch.Tensor(self.n_keyboxpairs):fill(2) --color_boxType[j] is the type of the box with id=j
-    if g_opts.boxstatus == 'all' then
+    local id = g_opts.id_boxes or torch.randperm(g_opts.n_boxes)  --the order of adding boxes
+    self.color_boxex = g_opts.color_boxes or torch.randperm(g_opts.n_color_boxes)  --color_boxex[j] is the color of the box with id=j
+    self.boxType = torch.Tensor(g_opts.n_boxes):fill(2) --color_boxType[j] is the type of the box with id=j
+    if g_opts.status_boxes == 'all' then
         self.boxType:fill(1) --all valuable
-    elseif g_opts.boxstatus == 'one' then
-        self.boxType[torch.random(self.n_keyboxpairs)] = 1
+    elseif g_opts.status_boxes == 'one' then
+        self.boxType[torch.random(g_opts.n_boxes)] = 1
     else
         error('wrong box status')
     end
 
     self.n_goal_boxes = self.boxType:eq(1):sum()
 
-    for i = 1, self.n_keyboxpairs do
+    for i = 1, g_opts.n_boxes do
         if g_opts.loc_boxes then
             self:place_item({
             	type = 'box',
             	id = 'id'..id[i],
-            	color='color'..self.color_box[id[i]],
+            	color='color'..self.color_boxex[id[i]],
             	status='BoxType'..self.boxType[i]}, g_opts.loc_boxes[i].y,g_opts.loc_boxes[i].x)
         else
             self:place_item_rand({
             	type = 'box',
             	id = 'id'..id[i],
-            	color='color'..self.color_box[id[i]],
+            	color='color'..self.color_boxex[id[i]],
             	status='BoxType'..self.boxType[i]})
         end
     end
@@ -78,7 +102,7 @@ end
 function KeyBox:get_matching_label()
 	local color_key_sorted, sorting_index = torch.sort(self.color_key)
 	local mathcing_string = ""
-	for i = 1, self.n_keyboxpairs do
+	for i = 1, g_opts.n_boxes do
        mathcing_string = mathcing_string..i..'-'..self.color_box[sorting_index[i]]..' '
     end
     return g_opts.matchingstring2id[mathcing_string]
@@ -216,15 +240,15 @@ function KeyBox:to_map_onehot(sentence)
             local d
             local tofar = false
             if e.loc then
-                local dy = e.loc.y - self.agent.loc.y + torch.ceil(self.conv_sz/2)
-                local dx = e.loc.x - self.agent.loc.x + torch.ceil(self.conv_sz/2)
-                if dx > self.conv_sz or dy > self.conv_sz or dx < 1 or dy < 1 then
+                local dy = e.loc.y - self.agent.loc.y + torch.ceil(g_opts.conv_sz/2)
+                local dx = e.loc.x - self.agent.loc.x + torch.ceil(g_opts.conv_sz/2)
+                if dx > g_opts.conv_sz or dy > g_opts.conv_sz or dx < 1 or dy < 1 then
                     tofar = true
                 end
-                d = (dy - 1) * self.conv_sz + dx - 1
+                d = (dy - 1) * g_opts.conv_sz + dx - 1
             else
                 c = c + 1
-                d = self.conv_sz * self.conv_sz + c - 1
+                d = g_opts.conv_sz * g_opts.conv_sz + c - 1
             end
             if not tofar then
                 local s = e:to_sentence_visible(self.agent.loc.y, self.agent.loc.x, visibile_attr)
@@ -256,15 +280,15 @@ function KeyBox:to_map_onehot_monitoring(sentence)
                 local d
                 local tofar = false
                 if e.loc then
-                    local dy = e.loc.y - ref_y + torch.ceil(self.conv_sz/2)
-                    local dx = e.loc.x - ref_x + torch.ceil(self.conv_sz/2)
-                    if dx > self.conv_sz or dy > self.conv_sz or dx < 1 or dy < 1 then
+                    local dy = e.loc.y - ref_y + torch.ceil(g_opts.conv_sz/2)
+                    local dx = e.loc.x - ref_x + torch.ceil(g_opts.conv_sz/2)
+                    if dx > g_opts.conv_sz or dy > g_opts.conv_sz or dx < 1 or dy < 1 then
                         tofar = true
                     end
-                    d = (dy - 1) * self.conv_sz + dx - 1
+                    d = (dy - 1) * g_opts.conv_sz + dx - 1
                 else
                     c = c + 1
-                    d = self.conv_sz * self.conv_sz + c - 1
+                    d = g_opts.conv_sz * g_opts.conv_sz + c - 1
                 end
                 if not tofar then
                     local s = e:to_sentence_visible(ref_y, ref_x, visibile_attr)
