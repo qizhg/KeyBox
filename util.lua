@@ -73,6 +73,24 @@ function index2yx(index, W)
 
 end
 
+function proc_stat(stat)
+	for k, v in pairs(stat) do
+            if string.sub(k, 1, 5) == 'count' then
+                local s = string.sub(k, 6)
+                stat['reward' .. s] = stat['reward' .. s] / v
+                stat['success' .. s] = stat['success' .. s] / v
+                
+            end
+        end
+        if stat.bl_count ~= nil and stat.bl_count > 0 then
+            stat.bl_cost = stat.bl_cost / stat.bl_count
+        else
+            stat.bl_cost = 0
+        end
+    stat.epoch = #g_log + 1
+end
+
+
 function format_stat(stat)
     local a = {}
     for n in pairs(stat) do table.insert(a, n) end

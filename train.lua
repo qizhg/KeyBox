@@ -40,50 +40,22 @@ function train(N)
             end
             g_update_param(g_paramx, g_paramdx)
         end
-        for k, v in pairs(stat) do
-            if string.sub(k, 1, 5) == 'count' then
-                local s = string.sub(k, 6)
-                stat['reward' .. s] = stat['reward' .. s] / v
-                stat['success' .. s] = stat['success' .. s] / v
-                
-            end
-        end
-        if stat.bl_count ~= nil and stat.bl_count > 0 then
-            stat.bl_cost = stat.bl_cost / stat.bl_count
-        else
-            stat.bl_cost = 0
-        end
-        stat.epoch = #g_log + 1
-        print(format_stat(stat))
-        table.insert(g_log, stat)
-	    g_opts.save = g_opts.exp..'-model_epoch.t7'
-        g_save_model()
 
-        --testing
+        proc_stat(stat)
+        print(format_stat(stat))
         if g_opts.training_testing then
             local stat_test = {}
             local s = test_batch()
             for k, v in pairs(s) do
                 stat_test[k] = (stat_test[k] or 0) + v
             end
-            for k, v in pairs(stat_test) do
-                if string.sub(k, 1, 5) == 'count' then
-                    local s = string.sub(k, 6)
-                    stat_test['reward' .. s] = stat_test['reward' .. s] / v
-                    stat_test['success' .. s] = stat_test['success' .. s] / v
-                
-                end
-            end
-            if stat_test.bl_count ~= nil and stat_test.bl_count > 0 then
-                stat_test.bl_cost = stat_test.bl_cost / stat_test.bl_count
-            else
-                stat_test.bl_cost = 0
-            end
-            stat_test.epoch = #g_log_test + 1
+            proc_stat(stat_test)
             print(format_stat(stat_test))
             table.insert(g_log_test, stat_test)
         end
-
+        table.insert(g_log, stat)
+	    g_opts.save = g_opts.exp..'-model_epoch.t7'
+        g_save_model()
     end
 end
 
