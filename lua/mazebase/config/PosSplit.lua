@@ -74,4 +74,4 @@ shuffleTable(id2pos)
 
 f = {}
 f.pos = id2pos
-torch.save('id2pos'..'_'..H..'_'..W..'_'..n_keys..'_'..n_boxes..'.t7', f)
+torch.save('PosSplit.t7', f)

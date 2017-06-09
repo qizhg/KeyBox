@@ -7,7 +7,7 @@
 
 function test_batch()
 	if g_opts.training_testing then g_opts.training_testing = 0 end
-	local batch_size_test = 1000
+	local batch_size_test = 2000
     local batch = batch_init(batch_size_test)
     local active = {}
     local reward = {}

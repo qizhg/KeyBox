@@ -37,7 +37,7 @@ g_opts.n_boxes = 2
 g_opts.n_color_boxes = 2
 g_opts.status_boxes = 'all' --all | one
 
-sso.costs.success_open = -2
+sso.costs.success_open = -5
 g_opts.model = 'MLP_acting'
 g_opts.nlayers = 2
 g_opts.visibile_attr = {'type', 'color', 'status', 'id'}
@@ -47,16 +47,13 @@ g_opts.hidsz = 128
 g_opts.MH = mapH[1]
 g_opts.MW = mapW[1]
 
-local f = torch.load('lua/mazebase/config/id2pos'..'_'..g_opts.MH..'_'..g_opts.MW..'_'..g_opts.n_keys..'_'..g_opts.n_boxes..'.t7')
+local f = torch.load('lua/mazebase/config/PosSplit.t7')
 g_opts.id2pos = f.pos
-local training_percetage = 0.7
-local training_testing = torch.rand(#g_opts.id2pos)
-training_testing = torch.le(training_testing, training_percetage) --1: training, 0:testing
-_, g_opts.training_testing_indices = torch.sort(training_testing, 1, true)
-g_opts.num_training = torch.eq(training_testing,1):sum()
-g_opts.num_testing = #g_opts.id2pos - g_opts.num_training
 g_opts.training_testing = 1
 g_log_test = {}
+g_opts.num_training = 1
+g_opts.num_testing = #g_opts.id2pos - g_opts.num_training
+
 
 
 

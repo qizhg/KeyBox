@@ -24,12 +24,10 @@ function KeyBox:sample_loc()
     local pos
     if g_opts.training_testing == 1 then --training
         local index = torch.rand(1):mul(g_opts.num_training):ceil()[1]
-        index = g_opts.training_testing_indices[index]
         pos = g_opts.id2pos[index]
     else --testing
         local index = torch.rand(1):mul(g_opts.num_testing):ceil()[1]
-        index = g_opts.training_testing_indices[index + g_opts.num_training]
-        pos = g_opts.id2pos[index]
+        pos = g_opts.id2pos[index + g_opts.num_training]
     end
     g_opts.loc_keys = {}
     g_opts.loc_boxes = {}
