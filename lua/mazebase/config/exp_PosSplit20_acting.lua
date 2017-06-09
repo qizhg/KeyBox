@@ -49,7 +49,7 @@ g_opts.MW = mapW[1]
 
 local f = torch.load('lua/mazebase/config/id2pos'..'_'..g_opts.MH..'_'..g_opts.MW..'_'..g_opts.n_keys..'_'..g_opts.n_boxes..'.t7')
 g_opts.id2pos = f.pos
-local training_percetage = 0.7
+local training_percetage = 0.20
 local training_testing = torch.rand(#g_opts.id2pos)
 training_testing = torch.le(training_testing, training_percetage) --1: training, 0:testing
 _, g_opts.training_testing_indices = torch.sort(training_testing, 1, true)
