@@ -64,7 +64,6 @@ g_load_model()
 
 local test_file = 'test_batch/test_'..g_opts.model..'.lua'
 paths.dofile(test_file)
-g_opts.batch_size = 2
 
 --------loc fixed-------------
 
@@ -91,13 +90,14 @@ g_opts.loc_agents[1].x =
 --]]
 
 --------id fixed-------------
-
+--[[
 g_opts.id_keys = torch.randperm(2)
 g_opts.id_keys[1] = 1
 g_opts.id_keys[2] = 2
 g_opts.id_boxes = torch.randperm(2)
 g_opts.id_boxes[1] = 1
 g_opts.id_boxes[2] = 2
+--]]
 
 
 --------color fixed-------------

@@ -7,8 +7,7 @@
 
 function train_batch(num_batch)
     -- start a new episode
-    if g_opts.training_testing then 
-        print(g_opts.num_training)
+    if g_opts.training_testing then
         g_opts.training_testing = 1 
     end
     local batch = batch_init(g_opts.batch_size)

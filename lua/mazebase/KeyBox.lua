@@ -199,7 +199,7 @@ function KeyBox:to_sentence_item_monitoring(e, sentence, visibile_attr)
 end
 
 
-
+-- representation for MemNN
 function KeyBox:to_sentence(sentence)
     local visibile_attr = g_opts.visibile_attr
     local count=0
@@ -214,6 +214,7 @@ function KeyBox:to_sentence(sentence)
     return sentence
 end
 
+-- representation for MemNN
 function KeyBox:to_sentence_monitoring(sentence)
     local visibile_attr = g_opts.visibile_attr_monitoring
     local count=0
@@ -260,10 +261,10 @@ function KeyBox:to_map_onehot(sentence)
     end
 end
 
+-- onehot representation for MLP model
 function KeyBox:to_map_onehot_monitoring(sentence)
     local visibile_attr = g_opts.visibile_attr_monitoring
-
-
+    
     if g_opts.loc_monitoring == true then
         local count = 0
         local c = 0
