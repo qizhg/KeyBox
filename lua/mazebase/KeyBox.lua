@@ -306,6 +306,7 @@ function KeyBox:to_map_onehot_monitoring(sentence)
         for _, e in pairs(self.items) do
             if e.attr.type ~='agent' then
                 c = c + 1
+                local y, x = index2yx(c, g_opts.MW)
                 local s = e:to_sentence_visible(self.agent.loc.y, self.agent.loc.x, visibile_attr)
                 for i = 1, #s do
                     count = count + 1
@@ -338,6 +339,45 @@ function KeyBox:to_map()
             end
         end
     end
+    return map
+end
+
+-- 2D map representation for conv model
+function KeyBox:to_map_monitoring()
+	local visibile_attr = g_opts.visibile_attr_monitoring --no loc
+    local map = torch.Tensor(self.map.height, self.map.width, self.max_attributes)
+    map:fill(self.vocab['nil'])
+
+    if g_opts.loc_monitoring == true then 
+    	for y = 1, self.map.height do
+	        for x = 1, self.map.width do
+	            local c = 0
+	            for _,e in ipairs(self.map.items[y][x]) do
+	                if e.attr.type ~='agent' then
+	                    local s = e:to_sentence_visible(self.agent.loc.y, self.agent.loc.x, visibile_attr) --no loc
+	                    for i = 1, #s do
+	                        c = c + 1
+	                        map[y][x][c] = self.vocab[s[i]]
+	                    end
+	                end
+	            end
+	        end
+	    end
+	else
+    	local item_count = 0
+	    for _, e in pairs(self.items) do
+	    	if e.attr.type ~='agent' then
+	    		item_count = item_count + 1
+	    		local s = e:to_sentence_visible(self.agent.loc.y, self.agent.loc.x, visibile_attr) --no loc
+	    		local y, x = index2yx(item_count, self.map.width)
+	    		local c = 0
+	    		for i = 1, #s do
+	                c = c + 1
+	                map[y][x][c] = self.vocab[s[i]]
+	            end
+	        end
+	    end
+	end
     return map
 end
 

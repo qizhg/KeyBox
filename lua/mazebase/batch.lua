@@ -103,6 +103,21 @@ function batch_input_conv(batch, active, t)
     return input:view(#batch * g_opts.nagents, -1)
 end
 
+function batch_input_conv_monitoring(batch, active, t)
+    active = active:view(#batch, g_opts.nagents)
+    local input = torch.Tensor(#batch, g_opts.nagents, g_opts.MH, g_opts.MW, g_opts.max_attributes)
+    input:fill(g_vocab['nil'])
+    for i, g in pairs(batch) do
+        for a = 1, g_opts.nagents do
+            g.agent = g.agents[a]
+            if active[i][a] == 1 then
+                input[i][a] = g:to_map()
+            end
+        end
+    end
+    return input:view(#batch * g_opts.nagents, -1)
+end
+
 function batch_act(batch, action, active)
     active = active:view(#batch, g_opts.nagents)
     action = action:view(#batch, g_opts.nagents)

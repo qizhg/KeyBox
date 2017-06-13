@@ -86,15 +86,15 @@ function g_build_model()
 
 	g_modules = {}
 
-    input_monitoring = nn.Identity()()
+    local input_monitoring = nn.Identity()()
 	local input2hid_monitoring = mlp_monitoring(input_monitoring)
     local comm_mean = nn.Linear(g_opts.hidsz, g_opts.nsymbols_monitoring)(input2hid_monitoring)
     g_modules['comm_mean'] = comm_mean.data.module
     local noise = nn.Identity()()
 	local out_monitoring = nn.Sigmoid()(nn.CAddTable()({comm_mean, noise}))
 
-    input_acting = nn.Identity()()
-    comm_in = nn.Identity()()
+    local input_acting = nn.Identity()()
+    local comm_in = nn.Identity()()
     g_modules['comm_in'] = comm_in.data.module
 	local input2hid_acting = mlp_acting(input_acting)
     local comm_decoder = nn.Sequential()
