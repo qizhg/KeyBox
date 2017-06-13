@@ -47,6 +47,23 @@ g_opts.hidsz = 128
 g_opts.MH = mapH[1]
 g_opts.MW = mapW[1]
 g_opts.conv_sz = 2*g_opts.MH - 1
+g_opts.max_steps = 30
+
+--------loc fixed-------------
+g_opts.loc_keys = {}
+g_opts.loc_keys[1] = {}
+g_opts.loc_keys[1].y = 1
+g_opts.loc_keys[1].x = 1
+g_opts.loc_keys[2] = {}
+g_opts.loc_keys[2].y = 1
+g_opts.loc_keys[2].x = 4
+g_opts.loc_boxes = {}
+g_opts.loc_boxes[1] = {}
+g_opts.loc_boxes[1].y = 4
+g_opts.loc_boxes[1].x = 1
+g_opts.loc_boxes[2] = {}
+g_opts.loc_boxes[2].y = 4
+g_opts.loc_boxes[2].x = 4
 
 
 

@@ -1,7 +1,7 @@
 #!/bin/bash
-export OMP_NUM_THREADS=4
+export OMP_NUM_THREADS=2
 
 th main.lua \
---batch_size 1024 \
---nworker 4 \
---exp 'exp_PosSplit_2a_1D_std00'
+--batch_size 8 \
+--nworker 2 \
+--exp 'exp_locfixed_acting'

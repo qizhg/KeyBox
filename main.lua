@@ -64,7 +64,7 @@ cmd:option('--nhop', 1, 'the number of hops in MemNN')
 -- game parameters
 cmd:option('--nagents', 1, 'the number of acting agents')
 cmd:option('--nactions', 6, 'the number of agent actions')
-cmd:option('--max_steps', 30, 'force to end the game after this many steps')
+cmd:option('--max_steps', 80, 'force to end the game after this many steps')
 cmd:option('--exp', 'exp_conv_acting', '')
 -- training parameters
 cmd:option('--optim', 'rmsprop', 'optimization method: rmsprop | sgd')
@@ -81,8 +81,8 @@ cmd:option('--eps_end', 0.1, '')
 cmd:option('--eps_start', 1.0, '')
 cmd:option('--eps_endbatch', 100*20, '')
 
-cmd:option('--epochs', 20, 'the number of training epochs')
-cmd:option('--nbatches', 10, 'the number of mini-batches in one epoch')
+cmd:option('--epochs', 50, 'the number of training epochs')
+cmd:option('--nbatches', 100, 'the number of mini-batches in one epoch')
 cmd:option('--batch_size', 5, 'size of mini-batch (the number of parallel games) in each thread')
 cmd:option('--nworker', 2, 'the number of threads used for training')
 -- for rmsprop
