@@ -315,9 +315,30 @@ function KeyBox:to_map_onehot_monitoring(sentence)
             end
         end
     end
+end
 
-
-
+-- 2D map representation for conv model
+function KeyBox:to_map()
+    local visibile_attr = g_opts.visibile_attr --no loc
+    local map = torch.Tensor(self.map.height * 2 - 1, self.map.width * 2 - 1, self.max_attributes)
+    map:fill(self.vocab['nil'])
+    for y = 1, self.map.height do
+        for x = 1, self.map.width do
+            local c = 0
+            local dy = y - self.agent.loc.y + self.map.height
+            local dx = x - self.agent.loc.x + self.map.width
+            for _,e in ipairs(self.map.items[y][x]) do
+                if e.attr.type ~='agent' then
+                    local s = e:to_sentence_visible(self.agent.loc.y, self.agent.loc.x, visibile_attr) --no loc
+                    for i = 1, #s do
+                        c = c + 1
+                        map[dy][dx][c] = self.vocab[s[i]]
+                    end
+                end
+            end
+        end
+    end
+    return map
 end
 
 function KeyBox:is_success()

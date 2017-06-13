@@ -8,8 +8,8 @@ require('optim')
 
 local train_file = 'train_batch/train_'..g_opts.model..'.lua'
 paths.dofile(train_file)
-local test_file = 'test_batch/test_'..g_opts.model..'.lua'
-paths.dofile(test_file)
+--local test_file = 'test_batch/test_'..g_opts.model..'.lua'
+--paths.dofile(test_file)
 
 function train(N)
     for n = 1, N do
@@ -94,6 +94,10 @@ function g_update_param(x, dx)
         local nilword = mapwords + 1
         if g_modules.atab then g_modules.atab.weight[nilword]:zero() end
         if g_modules.atab_monitoring then g_modules.atab_monitoring.weight[nilword]:zero() end
+    elseif g_opts.model:sub(1,3) == 'CNN' then
+        local nilword = g_vocab['nil']
+        if g_modules.LT then g_modules.LT.weight[nilword]:zero() end
+        if g_modules.LT_monitoring then g_modules.LT_monitoring.weight[nilword]:zero() end
     else -- MemNN
         local nilword = g_vocab['nil']
         if g_modules.A_LT then g_modules.A_LT.data.module.weight[nilword]:zero() end

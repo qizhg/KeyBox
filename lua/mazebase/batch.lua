@@ -82,6 +82,27 @@ function batch_input_mlp_monitoring(batch, active, t)
     return input:view(#batch * g_opts.nagents, -1)
 end
 
+function batch_input_conv(batch, active, t)
+    active = active:view(#batch, g_opts.nagents)
+    local input = torch.Tensor(#batch, g_opts.nagents, g_opts.conv_sz, g_opts.conv_sz, g_opts.max_attributes)
+    input:fill(g_vocab['nil'])
+    for i, g in pairs(batch) do
+        for a = 1, g_opts.nagents do
+            g.agent = g.agents[a]
+            local m = nil
+            if active[i][a] == 1 then
+                m = g:to_map()
+            end
+            if m then
+                local dy = math.floor((g_opts.conv_sz - m:size(1)) / 2) + 1
+                local dx = math.floor((g_opts.conv_sz - m:size(2)) / 2) + 1
+                input[i][a]:narrow(1, dy, m:size(1)):narrow(2, dx, m:size(2)):copy(m)
+            end
+        end
+    end
+    return input:view(#batch * g_opts.nagents, -1)
+end
+
 function batch_act(batch, action, active)
     active = active:view(#batch, g_opts.nagents)
     action = action:view(#batch, g_opts.nagents)
