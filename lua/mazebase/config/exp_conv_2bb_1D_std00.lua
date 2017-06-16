@@ -38,8 +38,15 @@ g_opts.n_color_boxes = 2
 g_opts.status_boxes = 'all' --all | one
 
 sso.costs.success_open = -5
-g_opts.model = 'CNN_acting'
-g_opts.visibile_attr = {'type', 'color', 'status', 'id'}
+g_opts.model = 'CNN_SigmoidChannel'
+g_opts.visibile_attr_monitoring = {'id'}
+g_opts.visibile_attr = {'type', 'color', 'status'}
+
+g_opts.loc_monitoring = true
+g_opts.actingloc_monitoring = false
+g_opts.oneshot_comm = true
+g_opts.nsymbols_monitoring = 1
+g_opts.noise_std = 0
 
 g_opts.hidsz = 50
 
@@ -48,6 +55,14 @@ g_opts.MW = mapW[1]
 g_opts.max_attributes = 12
 g_opts.convdim = g_opts.hidsz
 g_opts.conv_sz = 2*g_opts.MH - 1
+
+
+g_opts.n_keyboxpairs = sso.n_keyboxpairs
+g_opts.n_colors = sso.n_colors
+g_opts.boxstatus = sso.boxstatus
+
+
+
 
 
 -- KeyBox:

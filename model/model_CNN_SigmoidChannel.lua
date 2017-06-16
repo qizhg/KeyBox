@@ -30,7 +30,7 @@ local function build_conv_monitoring(input)
     local out_dim
     local d = g_opts.MH
 
-    local conv1 = nn.SpatialConvolution(g_opts.hidsz, g_opts.convdim, 3, 3, 1, 1, 1, 1)(input)
+    local conv1 = nn.SpatialConvolution(g_opts.hidsz, g_opts.convdim,   3, 3, 1, 1, 1, 1)(input)
     local nonl1 = nonlin()(conv1)
 
 
@@ -56,7 +56,7 @@ local function conv_monitoring(input_monitoring)
     g_modules.LT_monitoring = in_emb.data.module
     local in_A = nn.View(-1, g_opts.max_attributes, g_opts.hidsz):setNumInputDims(2)(in_emb)
     local in_bow = nn.Sum(3)(in_A)
-    local in_bow2d = nn.View(g_opts.conv_sz, g_opts.conv_sz, g_opts.hidsz):setNumInputDims(2)(in_bow)
+    local in_bow2d = nn.View(g_opts.MH, g_opts.MW, g_opts.hidsz):setNumInputDims(2)(in_bow)
     local in_conv = nn.Transpose({2,4})(in_bow2d)
 
     local conv_out = build_conv_monitoring(in_conv)
@@ -67,7 +67,7 @@ local function build_conv_acting(input)
     local out_dim
     local d = g_opts.conv_sz
 
-    local conv1 = nn.SpatialConvolution(g_opts.hidsz, g_opts.convdim, 3, 3, 1, 1, 1, 1)(input)
+    local conv1 = nn.SpatialConvolution(g_opts.hidsz, g_opts.convdim,   3, 3, 1, 1, 1, 1)(input)
     local nonl1 = nonlin()(conv1)
 
 

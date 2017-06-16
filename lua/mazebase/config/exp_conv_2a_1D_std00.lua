@@ -37,9 +37,16 @@ g_opts.n_boxes = 2
 g_opts.n_color_boxes = 2
 g_opts.status_boxes = 'all' --all | one
 
+
 sso.costs.success_open = -5
-g_opts.model = 'CNN_acting'
-g_opts.visibile_attr = {'type', 'color', 'status', 'id'}
+g_opts.model = 'CNN_SigmoidChannel'
+g_opts.visibile_attr_monitoring = {'color', 'id'}
+g_opts.visibile_attr = {'type', 'color', 'status'}
+
+g_opts.loc_monitoring = false
+g_opts.oneshot_comm = true
+g_opts.nsymbols_monitoring = 1
+g_opts.noise_std = 0
 
 g_opts.hidsz = 50
 
@@ -48,6 +55,37 @@ g_opts.MW = mapW[1]
 g_opts.max_attributes = 12
 g_opts.convdim = g_opts.hidsz
 g_opts.conv_sz = 2*g_opts.MH - 1
+
+
+local function gen_matching_label(mathcing_string, key_color, box_colors)
+	if key_color > g_opts.n_keys then
+		g_opts.id2matchingstring[id] = mathcing_string
+		g_opts.matchingstring2id[mathcing_string] = id
+		id = id + 1
+	else
+		local cache = mathcing_string
+		for i, box_color in pairs(box_colors) do 
+			mathcing_string = mathcing_string..key_color..'-'..box_color..' '
+			local box_colors_next = {table.unpack(box_colors)}
+			table.remove(box_colors_next, i)
+			gen_matching_label(mathcing_string, key_color+1, box_colors_next)
+			mathcing_string = cache
+		end
+	end
+end
+
+g_opts.id2matchingstring={}
+g_opts.matchingstring2id={}
+local mathcing_string=''
+local box_colors = {}
+for i=1,g_opts.n_keys do
+	table.insert(box_colors, i)
+end
+id = 1
+gen_matching_label(mathcing_string, 1, box_colors)
+id = nil
+
+
 
 
 -- KeyBox:

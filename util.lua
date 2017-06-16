@@ -157,7 +157,7 @@ function g_load_model()
         local f = torch.load(g_opts.load)
         g_paramx:copy(f.paramx)
         g_log = f.log
-        g_log_test = f.log_test
+        if f.log_test then g_log_test = f.log_test end
         g_plot_stat = {}
         for i = 1, #g_log do
             g_plot_stat[i] = {g_log[i].epoch, g_log[i].reward, g_log[i].success, g_log[i].bl_cost}

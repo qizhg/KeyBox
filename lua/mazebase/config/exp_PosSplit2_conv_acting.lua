@@ -49,6 +49,14 @@ g_opts.max_attributes = 12
 g_opts.convdim = g_opts.hidsz
 g_opts.conv_sz = 2*g_opts.MH - 1
 
+local f = torch.load('lua/mazebase/config/PosSplit.t7')
+g_opts.id2pos = f.pos
+g_opts.training_testing = 1
+g_log_test = {}
+g_opts.num_training = 2
+g_opts.num_testing = #g_opts.id2pos - g_opts.num_training
+
+
 
 -- KeyBox:
 local KeyBoxRangeOpts = {}

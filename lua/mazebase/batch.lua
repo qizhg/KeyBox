@@ -111,7 +111,7 @@ function batch_input_conv_monitoring(batch, active, t)
         for a = 1, g_opts.nagents do
             g.agent = g.agents[a]
             if active[i][a] == 1 then
-                input[i][a] = g:to_map()
+                input[i][a] = g:to_map_monitoring()
             end
         end
     end

@@ -64,11 +64,11 @@ cmd:option('--nhop', 1, 'the number of hops in MemNN')
 -- game parameters
 cmd:option('--nagents', 1, 'the number of acting agents')
 cmd:option('--nactions', 6, 'the number of agent actions')
-cmd:option('--max_steps', 80, 'force to end the game after this many steps')
+cmd:option('--max_steps', 30, 'force to end the game after this many steps')
 cmd:option('--exp', 'exp_conv_acting', '')
 -- training parameters
 cmd:option('--optim', 'rmsprop', 'optimization method: rmsprop | sgd')
-cmd:option('--lrate', 1e-3, 'learning rate')
+cmd:option('--lrate', 3e-3, 'learning rate')
 cmd:option('--max_grad_norm', 0, 'gradient clip value')
 cmd:option('--alpha', 0.03, 'coefficient of baseline term in the cost function')
 cmd:option('--beta', 0.1, '')
@@ -107,7 +107,6 @@ g_mazebase.init_game()
 g_log = {}
 g_init_model()
 g_load_model()
-print(g_opts)
 train(g_opts.epochs)
 g_opts.save = g_opts.exp..'.t7'
 g_save_model()
