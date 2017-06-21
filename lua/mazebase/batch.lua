@@ -110,8 +110,14 @@ function batch_input_conv_monitoring(batch, active, t)
     for i, g in pairs(batch) do
         for a = 1, g_opts.nagents do
             g.agent = g.agents[a]
+            local m = nil
             if active[i][a] == 1 then
-                input[i][a] = g:to_map_monitoring()
+                m = g:to_map_monitoring()
+            end
+            if m then
+                local dy = math.floor((g_opts.conv_sz - m:size(1)) / 2) + 1
+                local dx = math.floor((g_opts.conv_sz - m:size(2)) / 2) + 1
+                input[i][a]:narrow(1, dy, m:size(1)):narrow(2, dx, m:size(2)):copy(m)
             end
         end
     end

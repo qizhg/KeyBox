@@ -3,8 +3,8 @@ g_opts.multigames = {}
 -------------------
 --some shared RangeOpts
 --current min, current max, min max, max max, increment
-local mapH = torch.Tensor{10,10,5,10,1}
-local mapW = torch.Tensor{10,10,5,10,1}
+local mapH = torch.Tensor{5,8,5,10,1}
+local mapW = torch.Tensor{5,8,5,10,1}
 local blockspct = torch.Tensor{.0,.0, 0,.2,.01}
 local waterpct = torch.Tensor{.0,.0, 0,.2,.01}
 
@@ -41,30 +41,13 @@ sso.costs.success_open = -5
 g_opts.model = 'MLP_acting'
 g_opts.nlayers = 2
 g_opts.visibile_attr = {'type', 'color', 'status', 'id'}
-
 g_opts.hidsz = 128
 
-g_opts.MH = mapH[1]
-g_opts.MW = mapW[1]
-g_opts.conv_sz = 2*g_opts.MH - 1
+g_opts.conv_sz = 19
 g_opts.max_steps = 80
 
 --------loc fixed-------------
-g_opts.loc_keys = {}
-g_opts.loc_keys[1] = {}
-g_opts.loc_keys[1].y = 1
-g_opts.loc_keys[1].x = 1
-g_opts.loc_keys[2] = {}
-g_opts.loc_keys[2].y = 1
-g_opts.loc_keys[2].x = 10
-g_opts.loc_boxes = {}
-g_opts.loc_boxes[1] = {}
-g_opts.loc_boxes[1].y = 10
-g_opts.loc_boxes[1].x = 1
-g_opts.loc_boxes[2] = {}
-g_opts.loc_boxes[2].y = 10
-g_opts.loc_boxes[2].x = 10
-
+g_opts.corner_positions = true
 
 
 -- KeyBox:
@@ -78,6 +61,7 @@ local KeyBoxStaticOpts = {}
 for i,j in pairs(sso) do KeyBoxStaticOpts[i] = j end
 
 KeyBoxOpts ={}
+KeyBoxOpts.square = true
 KeyBoxOpts.RangeOpts = KeyBoxRangeOpts
 KeyBoxOpts.StaticOpts = KeyBoxStaticOpts
 

@@ -3,8 +3,13 @@ local KeyBox, parent = torch.class('KeyBox', 'MazeBase')
 function KeyBox:__init(opts, vocab)
     parent.__init(self, opts, vocab)
 
+    self.loc_keys = g_opts.loc_keys
+    self.loc_boxes = g_opts.loc_boxes
     if g_opts.training_testing then
         self:sample_loc()
+    end
+    if g_opts.corner_positions then
+        self:gen_corner_loc()
     end
 
     self:add_key()
@@ -29,21 +34,38 @@ function KeyBox:sample_loc()
         local index = torch.rand(1):mul(g_opts.num_testing):ceil()[1]
         pos = g_opts.id2pos[index + g_opts.num_training]
     end
-    g_opts.loc_keys = {}
-    g_opts.loc_boxes = {}
+    self.loc_keys = {}
+    self.loc_boxes = {}
     for i = 1, g_opts.n_keys do
         local y, x = index2yx(pos[i], g_opts.MW)
-        g_opts.loc_keys[i] = {}
-        g_opts.loc_keys[i].y = y
-        g_opts.loc_keys[i].x = x
+        self.loc_keys[i] = {}
+        self.loc_keys[i].y = y
+        self.loc_keys[i].x = x
     end
     for i = 1, g_opts.n_boxes do
         local y, x = index2yx(pos[i+g_opts.n_keys], g_opts.MW)
-        g_opts.loc_boxes[i] = {}
-        g_opts.loc_boxes[i].y = y
-        g_opts.loc_boxes[i].x = x
+        self.loc_boxes[i] = {}
+        self.loc_boxes[i].y = y
+        self.loc_boxes[i].x = x
     end
 
+end
+
+function KeyBox:gen_corner_loc()
+    self.loc_keys = {}
+    self.loc_keys[1] = {}
+    self.loc_keys[1].y = 1
+    self.loc_keys[1].x = 1
+    self.loc_keys[2] = {}
+    self.loc_keys[2].y = 1
+    self.loc_keys[2].x = self.map.width
+    self.loc_boxes = {}
+    self.loc_boxes[1] = {}
+    self.loc_boxes[1].y = self.map.height
+    self.loc_boxes[1].x = 1
+    self.loc_boxes[2] = {}
+    self.loc_boxes[2].y = self.map.height
+    self.loc_boxes[2].x = self.map.width
 end
 
 function KeyBox:add_key()
@@ -51,12 +73,12 @@ function KeyBox:add_key()
     local id = g_opts.id_keys or torch.randperm(g_opts.n_keys) --the order of adding keys
     self.color_keys = g_opts.color_keys or torch.randperm(g_opts.n_color_keys) --color_keys[j] is the color of the key with id=j
     for i = 1, g_opts.n_keys do
-        if g_opts.loc_keys then
+        if self.loc_keys then
             self:place_item({
                 type = 'key',
                 id = 'id'..id[i],
                 color = 'color'..self.color_keys[id[i]],
-                status = 'OnGround'}, g_opts.loc_keys[i].y,g_opts.loc_keys[i].x)
+                status = 'OnGround'}, self.loc_keys[i].y,self.loc_keys[i].x)
         else
             self:place_item_rand({
             	type = 'key',
@@ -82,12 +104,12 @@ function KeyBox:add_box()
     self.n_goal_boxes = self.boxType:eq(1):sum()
 
     for i = 1, g_opts.n_boxes do
-        if g_opts.loc_boxes then
+        if self.loc_boxes then
             self:place_item({
             	type = 'box',
             	id = 'id'..id[i],
             	color='color'..self.color_boxex[id[i]],
-            	status='BoxType'..self.boxType[i]}, g_opts.loc_boxes[i].y,g_opts.loc_boxes[i].x)
+            	status='BoxType'..self.boxType[i]}, self.loc_boxes[i].y,self.loc_boxes[i].x)
         else
             self:place_item_rand({
             	type = 'box',
@@ -268,11 +290,11 @@ function KeyBox:to_map_onehot_monitoring(sentence)
     if g_opts.loc_monitoring == true then
         local count = 0
         local c = 0
-        local ref_y = self.agent.loc.y
-        local ref_x = self.agent.loc.x
-        if g_opts.actingloc_monitoring == false then
-        	ref_y = 1
-        	ref_x = 1
+        local ref_y = 1
+        local ref_x = 1
+        if g_opts.actingloc_monitoring == true then
+        	ref_y = self.agent.loc.y
+        	ref_x = self.agent.loc.x
         end
         for _, e in pairs(self.items) do
             if e.attr.type ~='agent' then
