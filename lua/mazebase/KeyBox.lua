@@ -120,10 +120,10 @@ function KeyBox:add_box()
     end
 end
 function KeyBox:get_matching_label()
-	local color_key_sorted, sorting_index = torch.sort(self.color_key)
+	local color_key_sorted, sorting_index = torch.sort(self.color_keys)
 	local mathcing_string = ""
 	for i = 1, g_opts.n_boxes do
-       mathcing_string = mathcing_string..i..'-'..self.color_box[sorting_index[i]]..' '
+       mathcing_string = mathcing_string..i..'-'..self.color_boxex[sorting_index[i]]..' '
     end
     return g_opts.matchingstring2id[mathcing_string]
 end

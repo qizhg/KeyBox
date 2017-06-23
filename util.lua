@@ -183,3 +183,31 @@ function g_save_glogs()
         torch.save(g_opts.save, f)
     end
 end
+
+
+local function gen_matching_label(mathcing_string, key_color, box_colors)
+    if key_color > sso.n_keyboxpairs then
+        g_opts.id2matchingstring[id] = mathcing_string
+        g_opts.matchingstring2id[mathcing_string] = id
+        id = id + 1
+    else
+        local cache = mathcing_string
+        for i, box_color in pairs(box_colors) do 
+            mathcing_string = mathcing_string..key_color..'-'..box_color..' '
+            local box_colors_next = {table.unpack(box_colors)}
+            table.remove(box_colors_next, i)
+            gen_matching_label(mathcing_string, key_color+1, box_colors_next)
+            mathcing_string = cache
+        end
+    end
+end
+
+g_opts.id2matchingstring={}
+g_opts.matchingstring2id={}
+local mathcing_string=''
+local box_colors = {}
+for i=1,sso.n_keyboxpairs do
+    table.insert(box_colors, i)
+end
+id = 1
+gen_matching_label(mathcing_string, 1, box_colors)
