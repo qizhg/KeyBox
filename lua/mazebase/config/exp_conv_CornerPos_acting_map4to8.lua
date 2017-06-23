@@ -38,13 +38,14 @@ g_opts.n_color_boxes = 2
 g_opts.status_boxes = 'all' --all | one
 
 sso.costs.success_open = -5
-g_opts.model = 'MLP_acting'
-g_opts.nlayers = 2
+g_opts.model = 'CNN_acting'
 g_opts.visibile_attr = {'type', 'color', 'status', 'id'}
-g_opts.hidsz = 128
+g_opts.hidsz = 50
 
 g_opts.conv_sz = 19
 g_opts.max_steps = 80
+g_opts.max_attributes = 12
+g_opts.convdim = g_opts.hidsz
 
 --------loc fixed-------------
 g_opts.corner_positions = true

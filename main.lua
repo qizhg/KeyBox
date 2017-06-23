@@ -71,7 +71,7 @@ cmd:option('--optim', 'rmsprop', 'optimization method: rmsprop | sgd')
 cmd:option('--lrate', 1e-3, 'learning rate')
 cmd:option('--max_grad_norm', 0, 'gradient clip value')
 cmd:option('--alpha', 0.03, 'coefficient of baseline term in the cost function')
-cmd:option('--beta', 0.1, '')
+cmd:option('--beta', 0.5, '')
 
 cmd:option('--Gumbel_temp', 1.0, '')
 cmd:option('--Gumbel_start', 5.0, '')

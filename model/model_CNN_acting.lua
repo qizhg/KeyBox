@@ -27,7 +27,7 @@ local function nonlin()
     end
 end
 
-
+--[[
 local function build_conv(input)
     local out_dim
     local d = g_opts.conv_sz
@@ -45,6 +45,40 @@ local function build_conv(input)
     local conv3 = nn.SpatialConvolution(g_opts.convdim, g_opts.convdim, 3, 3, 1, 1, 1, 1)(nonl2)
     local nonl3 = nonlin()(conv3)
     --assert(d > 1 and d < 6)
+
+    out_dim = d * d * g_opts.convdim
+    local fc0 = nn.View(out_dim):setNumInputDims(3)(nonl3)
+    local fc1 = nn.Linear(out_dim, g_opts.hidsz)(fc0)
+    return nonlin()(fc1)
+end
+--]]
+
+local function build_conv(input)
+    local out_dim
+    local d = g_opts.conv_sz
+
+    local conv1 = nn.SpatialConvolution(g_opts.hidsz, g_opts.convdim, 3, 3, 1, 1)(input)
+    local nonl1 = nonlin()(conv1)
+    d = d - 2
+
+    if d > 13 then
+        nonl1 = nn.SpatialMaxPooling(2, 2, 2, 2)(nonl1)
+        d = math.floor(d / 2)
+    end
+
+    local conv2 = nn.SpatialConvolution(g_opts.convdim, g_opts.convdim, 3, 3, 1, 1)(nonl1)
+    local nonl2 = nonlin()(conv2)
+    d = d - 2
+
+    if d > 7 then
+        nonl2 = nn.SpatialMaxPooling(2, 2, 2, 2)(nonl2)
+        d = math.floor(d / 2)
+    end
+
+    local conv3 = nn.SpatialConvolution(g_opts.convdim, g_opts.convdim, 3, 3, 1, 1)(nonl2)
+    local nonl3 = nonlin()(conv3)
+    d = d - 2
+    assert(d > 1 and d < 6)
 
     out_dim = d * d * g_opts.convdim
     local fc0 = nn.View(out_dim):setNumInputDims(3)(nonl3)
