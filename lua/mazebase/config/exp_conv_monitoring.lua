@@ -37,17 +37,20 @@ g_opts.n_boxes = 2
 g_opts.n_color_boxes = 2
 g_opts.status_boxes = 'all' --all | one
 
-sso.costs.success_open = -5
-g_opts.model = 'CNN_acting_commin'
-g_opts.visibile_attr = {'type', 'color', 'status'}
 
-g_opts.hidsz = 128
+sso.costs.success_open = -5
+g_opts.model = 'CNN_monitoring'
+g_opts.visibile_attr_monitoring = {'color', 'id'}
+g_opts.loc_monitoring = true
+
+g_opts.hidsz = 50
 
 g_opts.MH = mapH[1]
 g_opts.MW = mapW[1]
 g_opts.max_attributes = 12
-g_opts.convdim = 50
+g_opts.convdim = g_opts.hidsz
 g_opts.conv_sz = 2*g_opts.MH - 1
+
 
 local function gen_matching_label(mathcing_string, key_color, box_colors)
 	if key_color > g_opts.n_keys then
@@ -76,6 +79,8 @@ end
 id = 1
 gen_matching_label(mathcing_string, 1, box_colors)
 id = nil
+
+
 
 
 -- KeyBox:

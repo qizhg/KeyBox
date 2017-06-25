@@ -115,8 +115,8 @@ function batch_input_conv_monitoring(batch, active, t)
                 m = g:to_map_monitoring()
             end
             if m then
-                local dy = math.floor((g_opts.conv_sz - m:size(1)) / 2) + 1
-                local dx = math.floor((g_opts.conv_sz - m:size(2)) / 2) + 1
+                local dy = math.floor((g_opts.MH - m:size(1)) / 2) + 1
+                local dx = math.floor((g_opts.MW - m:size(2)) / 2) + 1
                 input[i][a]:narrow(1, dy, m:size(1)):narrow(2, dx, m:size(2)):copy(m)
             end
         end
