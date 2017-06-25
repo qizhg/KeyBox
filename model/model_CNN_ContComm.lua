@@ -101,8 +101,7 @@ function g_build_model()
     local input2hid_monitoring = conv_monitoring(input_monitoring)
     local comm_mean = nn.Linear(g_opts.hidsz, g_opts.nsymbols_monitoring)(input2hid_monitoring)
     g_modules['comm_mean'] = comm_mean.data.module
-    local noise = nn.Identity()()
-    local out_monitoring = nn.Sigmoid()(nn.CAddTable()({comm_mean, noise}))
+    local out_monitoring = comm_mean
 
     local input_acting = nn.Identity()()
     local comm_in = nn.Identity()()
@@ -121,7 +120,7 @@ function g_build_model()
     local hid_bl_acting = nonlin()(nn.Linear(g_opts.hidsz, g_opts.hidsz)(hid_final_acting))
     local baseline_acting = nn.Linear(g_opts.hidsz, 1)(hid_bl_acting)
 
-    local model = nn.gModule({input_monitoring, input_acting, comm_in, noise}, 
+    local model = nn.gModule({input_monitoring, input_acting, comm_in}, 
                              {out_monitoring, action_prob_acting, baseline_acting})
     return model
 end
