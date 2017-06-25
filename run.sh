@@ -4,6 +4,6 @@ export GOTO_NUM_THREADS=1
 export OMP_NUM_THREADS=1
 
 th main.lua \
---batch_size 10 \
+--batch_size 32 \
 --nworker 2 \
---exp 'exp_conv_ContComm'
+--exp 'exp_conv_monitoring'

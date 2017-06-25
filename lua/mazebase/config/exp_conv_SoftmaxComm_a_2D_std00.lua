@@ -39,9 +39,14 @@ g_opts.status_boxes = 'all' --all | one
 
 
 sso.costs.success_open = -5
-g_opts.model = 'CNN_monitoring'
+g_opts.model = 'CNN_SoftmaxChannel'
 g_opts.visibile_attr_monitoring = {'color', 'id'}
-g_opts.loc_monitoring = true
+g_opts.visibile_attr = {'type', 'color', 'status'}
+
+g_opts.loc_monitoring = false
+g_opts.oneshot_comm = true
+g_opts.nsymbols_monitoring = 2
+g_opts.noise_std = 0
 
 g_opts.hidsz = 128
 

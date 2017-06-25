@@ -30,33 +30,29 @@ local function build_conv_monitoring(input)
     local out_dim
     local d = g_opts.MH
 
-    local conv1 = nn.SpatialConvolution(g_opts.hidsz, g_opts.convdim,   3, 3, 1, 1, 1, 1)(input)
+    local conv1 = nn.SpatialConvolution(g_opts.convdim, g_opts.convdim, 3, 3, 1, 1, 1, 1)(input)
     local nonl1 = nonlin()(conv1)
 
+    nonl1 = nn.SpatialMaxPooling(2, 2, 2, 2)(nonl1)
+    d = math.floor(d / 2)
 
     local conv2 = nn.SpatialConvolution(g_opts.convdim, g_opts.convdim, 3, 3, 1, 1, 1, 1)(nonl1)
     local nonl2 = nonlin()(conv2)
-
-    nonl2 = nn.SpatialMaxPooling(2, 2, 2, 2)(nonl2)
-    d = math.floor(d / 2)
-
-    local conv3 = nn.SpatialConvolution(g_opts.convdim, g_opts.convdim, 3, 3, 1, 1, 1, 1)(nonl2)
-    local nonl3 = nonlin()(conv3)
     --assert(d > 1 and d < 6)
 
     out_dim = d * d * g_opts.convdim
-    local fc0 = nn.View(out_dim):setNumInputDims(3)(nonl3)
+    local fc0 = nn.View(out_dim):setNumInputDims(3)(nonl2)
     local fc1 = nn.Linear(out_dim, g_opts.hidsz)(fc0)
     return nonlin()(fc1)
 end
 
 local function conv_monitoring(input_monitoring)
      -- process 2D spatial information
-    local in_emb = nn.LookupTable(g_opts.nwords, g_opts.hidsz)(input_monitoring)
+    local in_emb = nn.LookupTable(g_opts.nwords, g_opts.convdim)(input_monitoring)
     g_modules.LT_monitoring = in_emb.data.module
-    local in_A = nn.View(-1, g_opts.max_attributes, g_opts.hidsz):setNumInputDims(2)(in_emb)
+    local in_A = nn.View(-1, g_opts.max_attributes, g_opts.convdim):setNumInputDims(2)(in_emb)
     local in_bow = nn.Sum(3)(in_A)
-    local in_bow2d = nn.View(g_opts.MH, g_opts.MW, g_opts.hidsz):setNumInputDims(2)(in_bow)
+    local in_bow2d = nn.View(g_opts.MH, g_opts.MW, g_opts.convdim):setNumInputDims(2)(in_bow)
     local in_conv = nn.Transpose({2,4})(in_bow2d)
 
     local conv_out = build_conv_monitoring(in_conv)
