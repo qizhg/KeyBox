@@ -31,10 +31,10 @@ sso.max_attributes = g_opts.max_attributes or 6
 
 
 ----------Game Specific----------------
-g_opts.n_keys = 2
-g_opts.n_color_keys = 2
-g_opts.n_boxes = 2
-g_opts.n_color_boxes = 2
+g_opts.n_keys = 3
+g_opts.n_color_keys = 3
+g_opts.n_boxes = 3
+g_opts.n_color_boxes = 3
 g_opts.status_boxes = 'all' --all | one
 
 sso.costs.success_open = -5

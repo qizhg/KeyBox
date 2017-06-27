@@ -31,9 +31,12 @@ sso.max_attributes = g_opts.max_attributes or 6
 
 
 ----------Game Specific----------------
-sso.n_keyboxpairs = 2
-sso.boxstatus = 'all' --all | one
-sso.n_colors = sso.n_keyboxpairs
+g_opts.n_keys = 3
+g_opts.n_color_keys = 3
+g_opts.n_boxes = 3
+g_opts.n_color_boxes = 3
+g_opts.status_boxes = 'all' --all | one
+
 sso.costs.success_open = -5
 g_opts.model = 'MLP_SigmoidChannel'
 g_opts.nlayers = 2

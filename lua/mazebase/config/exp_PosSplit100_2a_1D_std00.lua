@@ -36,52 +36,30 @@ g_opts.n_color_keys = 2
 g_opts.n_boxes = 2
 g_opts.n_color_boxes = 2
 g_opts.status_boxes = 'all' --all | one
-
 sso.costs.success_open = -5
+
 g_opts.model = 'MLP_SigmoidChannel'
 g_opts.nlayers = 2
-g_opts.visibile_attr_monitoring = {'id'}
+g_opts.visibile_attr_monitoring = {'color', 'id'}
 g_opts.visibile_attr = {'type', 'color', 'status'}
-
-g_opts.loc_monitoring = true
-g_opts.actingloc_monitoring = false
+g_opts.loc_monitoring = false
 g_opts.oneshot_comm = true
 g_opts.nsymbols_monitoring = 1
 g_opts.noise_std = 0
-
 g_opts.hidsz = 128
 
 g_opts.MH = mapH[1]
 g_opts.MW = mapW[1]
-g_opts.conv_sz = 2*g_opts.MH - 1
 
-local function gen_matching_label(mathcing_string, key_color, box_colors)
-	if key_color > g_opts.n_keys then
-		g_opts.id2matchingstring[id] = mathcing_string
-		g_opts.matchingstring2id[mathcing_string] = id
-		id = id + 1
-	else
-		local cache = mathcing_string
-		for i, box_color in pairs(box_colors) do 
-			mathcing_string = mathcing_string..key_color..'-'..box_color..' '
-			local box_colors_next = {table.unpack(box_colors)}
-			table.remove(box_colors_next, i)
-			gen_matching_label(mathcing_string, key_color+1, box_colors_next)
-			mathcing_string = cache
-		end
-	end
-end
+local f = torch.load('lua/mazebase/config/PosSplit.t7')
+g_opts.id2pos = f.pos
+g_opts.training_testing = 1
+g_log_test = {}
+g_opts.num_training = 100
+g_opts.num_testing = #g_opts.id2pos - g_opts.num_training
 
-g_opts.id2matchingstring={}
-g_opts.matchingstring2id={}
-local mathcing_string=''
-local box_colors = {}
-for i=1,g_opts.n_keys do
-	table.insert(box_colors, i)
-end
-id = 1
-gen_matching_label(mathcing_string, 1, box_colors)
-id = nil
+
+
 
 
 -- KeyBox:

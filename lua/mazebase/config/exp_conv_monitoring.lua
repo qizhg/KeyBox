@@ -41,7 +41,7 @@ g_opts.status_boxes = 'all' --all | one
 sso.costs.success_open = -5
 g_opts.model = 'CNN_monitoring'
 g_opts.visibile_attr_monitoring = {'color', 'id'}
-g_opts.loc_monitoring = true
+g_opts.loc_monitoring = false
 
 g_opts.hidsz = 128
 

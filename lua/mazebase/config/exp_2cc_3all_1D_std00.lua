@@ -31,16 +31,16 @@ sso.max_attributes = g_opts.max_attributes or 6
 
 
 ----------Game Specific----------------
-g_opts.n_keys = 2
-g_opts.n_color_keys = 2
-g_opts.n_boxes = 2
-g_opts.n_color_boxes = 2
+g_opts.n_keys = 3
+g_opts.n_color_keys = 3
+g_opts.n_boxes = 3
+g_opts.n_color_boxes = 3
 g_opts.status_boxes = 'all' --all | one
 
 sso.costs.success_open = -5
 g_opts.model = 'MLP_SigmoidChannel'
 g_opts.nlayers = 2
-g_opts.visibile_attr_monitoring = {'id'}
+g_opts.visibile_attr_monitoring = {'color','id'}
 g_opts.visibile_attr = {'type', 'color', 'status'}
 
 g_opts.loc_monitoring = true
@@ -82,6 +82,9 @@ end
 id = 1
 gen_matching_label(mathcing_string, 1, box_colors)
 id = nil
+
+
+
 
 
 -- KeyBox:

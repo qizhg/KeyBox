@@ -31,9 +31,12 @@ sso.max_attributes = g_opts.max_attributes or 6
 
 
 ----------Game Specific----------------
-sso.n_keyboxpairs = 2
-sso.boxstatus = 'all' --all | one
-sso.n_colors = sso.n_keyboxpairs
+g_opts.n_keys = 2
+g_opts.n_color_keys = 2
+g_opts.n_boxes = 2
+g_opts.n_color_boxes = 2
+g_opts.status_boxes = 'all' --all | one
+
 sso.costs.success_open = -5
 g_opts.model = 'MLP_SigmoidChannel'
 g_opts.nlayers = 2
@@ -45,19 +48,15 @@ g_opts.actingloc_monitoring = false
 g_opts.oneshot_comm = true
 g_opts.nsymbols_monitoring = 1
 g_opts.noise_std = 0
+
 g_opts.hidsz = 128
-
-
 
 g_opts.MH = mapH[1]
 g_opts.MW = mapW[1]
-g_opts.n_keyboxpairs = sso.n_keyboxpairs
-g_opts.n_colors = sso.n_colors
-g_opts.boxstatus = sso.boxstatus
-
+g_opts.conv_sz = 2*g_opts.MH - 1
 
 local function gen_matching_label(mathcing_string, key_color, box_colors)
-	if key_color > sso.n_keyboxpairs then
+	if key_color > g_opts.n_keys then
 		g_opts.id2matchingstring[id] = mathcing_string
 		g_opts.matchingstring2id[mathcing_string] = id
 		id = id + 1
@@ -77,7 +76,7 @@ g_opts.id2matchingstring={}
 g_opts.matchingstring2id={}
 local mathcing_string=''
 local box_colors = {}
-for i=1,sso.n_keyboxpairs do
+for i=1,g_opts.n_keys do
 	table.insert(box_colors, i)
 end
 id = 1
